@@ -2,6 +2,12 @@
 
 ## Overview
 
+![Architecture diagram](images/architecture.png)
+*Editors work in Contentstack; the Next.js storefront on Vercel composes Contentstack content with BigCommerce commerce data. The editable source is `images/source/architecture.html`.*
+
+<details>
+<summary>Text version of the diagram</summary>
+
 ```
                           ┌────────────────────────── Editors ───────────────────────────┐
                           │ Contentstack app: entry form + Live Preview / Visual Editor  │
@@ -19,6 +25,8 @@
                                                                            ▼
                                                                   Visitors (EN at /, FR at /fr)
 ```
+
+</details>
 
 Two systems of record, one composition layer:
 

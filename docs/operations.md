@@ -16,7 +16,7 @@ Copy `.env.example` to `.env.local`. **All are server-side**; none use the `NEXT
 | `CONTENTSTACK_API_KEY` | yes | stack API key |
 | `CONTENTSTACK_DELIVERY_TOKEN` | yes | read-only token for the environment below |
 | `CONTENTSTACK_PREVIEW_TOKEN` | for preview | lets Live Preview read unsaved/draft content |
-| `CONTENTSTACK_ENVIRONMENT` | yes | environment name (`preview` today) |
+| `CONTENTSTACK_ENVIRONMENT` | yes | environment name; must be the environment the delivery token is bound to (`preview` today) |
 | `CONTENTSTACK_REGION` | yes | `us`, `eu`, `au`, `azure-na`, `azure-eu` or `gcp-na` (`eu` today) |
 | `CONTENTSTACK_MANAGEMENT_TOKEN` | seeding only | write access; **never** needed to run the site |
 | `BIGCOMMERCE_STORE_HASH` | yes | store hash |
@@ -106,8 +106,9 @@ Changing a variable needs a redeploy to take effect.
 
 Already done: deployed on Vercel with GitHub auto-deploy and all variables set (see above).
 
-- [ ] Create a **`production`** environment in Contentstack (today only `preview` exists), a delivery token for it, and
-      publish content there; set `CONTENTSTACK_ENVIRONMENT=production`.
+- [x] A **`production`** environment exists in Contentstack, with Live Preview base URLs for both locales on the Vercel domain.
+- [ ] Publish content to `production`, create a delivery token bound to it, and set `CONTENTSTACK_ENVIRONMENT=production` plus
+      that token in Vercel's **Production** scope ([contentstack.md](contentstack.md#switching-the-live-site-to-the-production-environment)).
 - [ ] Replace all fictional sample content (authors, article text, FAQ policies, promotions, contact details).
 - [ ] Add **publish webhooks** → Next.js revalidation (tags or paths), then cache Contentstack reads.
 - [ ] Add BigCommerce **Store Translations** for French product content (or accept English product names).

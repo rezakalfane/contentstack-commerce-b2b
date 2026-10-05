@@ -20,6 +20,9 @@ arrows appended to link text.
 
 ## Tokens (`app/globals.css`)
 
+![Colour tokens](images/palette.png)
+*The eight colour tokens.*
+
 | Token | Value | Use |
 |---|---|---|
 | `--paper` | `#ffffff` | page background, surfaces |
@@ -40,6 +43,9 @@ amber-deep 7.6:1, in-stock green on paper 5.1:1, white on ink 17.4:1. **Amber is
 (amber-deep on white is only 2.3:1); it appears as fills, underlines and rules.
 
 ## Typography
+
+![Typography samples](images/typography.png)
+*Display and body type as rendered on the live site.*
 
 | Role | Font | Settings |
 |---|---|---|
@@ -68,6 +74,9 @@ French characters used.
   Footer: ink background.
 
 ## Components and utility classes
+
+![Component samples](images/components.png)
+*Crops of the live site: header, buttons, filter chips, product tile, metadata, numbered step and checklist.*
 
 | Class / component | Purpose |
 |---|---|

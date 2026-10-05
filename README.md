@@ -32,6 +32,23 @@ The site is bilingual (English at `/`, French at `/fr`) and editors can edit it 
 | **Editing** | Live Preview and Visual Editor with click-to-edit fields |
 | **Design** | "Workbench": light theme, 1100px pages, photography-led |
 
+## Screenshots
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/plp.jpg" alt="Product listing with search and filter chips"><br><sub>Listing: search-as-you-type, removable filter chips, facets from BigCommerce</sub></td>
+<td width="50%"><img src="docs/images/pdp.jpg" alt="Product page"><br><sub>Product page: gallery, price, stock, key specs, add to cart</sub></td>
+</tr>
+<tr>
+<td><img src="docs/images/cart.jpg" alt="Cart with quantity steppers"><br><sub>Cart: instant quantity changes, saved to BigCommerce</sub></td>
+<td><img src="docs/images/i18n-en-fr.jpg" alt="The same product page in English and French"><br><sub>The same page in English and French</sub></td>
+</tr>
+<tr>
+<td><img src="docs/images/mega-menu.jpg" alt="Product mega menu"><br><sub>Mega menu built from the live category tree</sub></td>
+<td><img src="docs/images/guide.jpg" alt="Buying guide"><br><sub>Buying guide with numbered steps and recommended products</sub></td>
+</tr>
+</table>
+
 ## Quick start
 
 Requirements: Node 22+, Python 3.12+ with Pillow (only for the seeding scripts), a Contentstack stack and a BigCommerce

@@ -155,7 +155,8 @@ guide heroes use photography, not composed product shots.
 
 ## Open questions
 
-- Which **production** environment name and domain, and when to switch from `preview`?
+- A `production` environment now exists (with Live Preview base URLs for the Vercel domain), but content is still published only
+  to `preview`. When do we publish to `production` and switch the live site over (see [contentstack.md](contentstack.md))?
 - Will buyers **sign in** (B2B Edition companies, price lists, quotes)? Today "your negotiated prices" is aspirational copy.
 - Do we want **translated slugs** for French SEO (reverses D9)?
 - Should category tiles and the home category mosaic move into Contentstack (needs a type slot)?

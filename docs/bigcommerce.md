@@ -23,6 +23,9 @@ Top-level categories and subcategories (counts are products):
 | Consumer Batteries (34) | Button & Coin Cells 12, Household 12, Rechargeable 10 |
 | Chargers & Accessories (20) | Battery Chargers 12, Jump Starters & Boosters 8 |
 
+![Category tree as a mega menu](images/mega-menu.jpg)
+*The category tree above, as the storefront mega menu.*
+
 ## Authentication: the channel-scoped token
 
 A **Storefront API token** is created for one channel and one allowed origin:
@@ -106,12 +109,18 @@ Attribute facets come from product custom fields. Coverage across the 150 produc
 Plus **Brand** and **Price**. Each facet shows at most 8 values (`MAX_FACET_VALUES`). To change the set edit `FACET_NAMES`
 and add French names/values to `lib/i18n.ts` (`SPEC_NAMES_FR`, `translateSpec`).
 
+![Facets](images/plp-filters.jpg)
+*The facets the table describes, as shown on a category page.*
+
 ### Product detail query
 
 `getProductByPath` uses `site.route(path)` and reads: description (HTML), plain-text description, MPN, GTIN, weight, min/max
 purchase quantity, availability, all images (1200 px), custom fields (the spec table), bulk pricing (fixed price or percent
 off), the first category's breadcrumbs, and four related products. A route that is not a `Product` returns `null`
 (→ the catalog route then tries a category).
+
+![Specification table](images/pdp-details.jpg)
+*Product detail data from BigCommerce: description (HTML), custom fields as the specification table.*
 
 ### Cart
 

@@ -63,6 +63,15 @@ interpretation is tried, and `notFound()` is raised if neither resolves.
 - **Trade favourites**: `product_spotlight` entries with `is_featured`, enriched with live BigCommerce price, photo and link.
 - **From the buying guides**: the first three guides.
 
+![Trade favourites](images/home-spotlights.jpg)
+*Trade favourites: editorial content from Contentstack with live price, photo and link from BigCommerce.*
+
+![A value block](images/home-blocks.jpg)
+*A value block from the page's modular `blocks` field (title, copy, image, layout).*
+
+![From the buying guides](images/home-guides.jpg)
+*The guides strip: the first three guides, with photo, audience and read time.*
+
 ## 4. Navigation, mega menu and announcement bar
 
 - **Header links** come from the `site_navigation` entry. The link whose `href` is `/products` is replaced by the
@@ -76,10 +85,16 @@ interpretation is tried, and `notFound()` is raised if neither resolves.
 - **Footer** columns, contact details and legal line come from `site_navigation`.
 - **Cart link** shows the item count by reading the cart cookie and asking BigCommerce (`CartLink`, in a `Suspense`).
 
+![Product mega menu](images/mega-menu.jpg)
+*The mega menu: five top-level categories with photos, subcategories and live product counts.*
+
 ## 5. Product listing and categories
 
 `components/plp.tsx` renders: search box, result count, **active filter chips**, "Clear all", sort, facets, product
 grid and pager. It is a plain GET `<form>`, wrapped by `components/plp-form.tsx`.
+
+![Product listing](images/plp.jpg)
+*A category with a search term and a technology filter applied: result count, chips with "Clear all", sort, facets, product grid.*
 
 ### Query parameters
 
@@ -111,6 +126,9 @@ grid and pager. It is a plain GET `<form>`, wrapped by `components/plp-form.tsx`
 - On screens narrower than 1024 px the filter panel starts **collapsed** (`components/filters-details.tsx`) so the grid is
   visible first; it stays open on desktop and without JavaScript.
 
+![Filter sidebar](images/plp-filters.jpg)
+*The filter sidebar for a category: brand, technology, voltage and warranty facets (at most 8 values each) and a price range.*
+
 ### Categories include subcategory products
 
 A category's own product list is often empty (products sit in subcategories). The category page therefore runs the
@@ -119,6 +137,9 @@ faceted search with `categoryEntityId`, which includes all descendants, instead 
 ## 6. Product detail page
 
 `ProductView` in `products/[...slug]/page.tsx`:
+
+![Product page](images/pdp.jpg)
+*The product page: gallery, brand, price with stock indicator, spotlight tagline, key specs and add to cart.*
 
 - **Gallery** (`product-gallery.tsx`): main image + thumbnails (client state).
 - **Header**: brand, name, SKU / MPN, price (sale and retail "was" price when applicable), stock indicator.
@@ -131,6 +152,9 @@ faceted search with `categoryEntityId`, which includes all descendants, instead 
 - **Related products** from BigCommerce's `relatedProducts`.
 - **Structured data**: a `schema.org/Product` JSON-LD block (price, currency, availability, SKU, GTIN, brand, images).
 - **Metadata**: title, description, Open Graph image and hreflang alternates.
+
+![Description and specifications](images/pdp-details.jpg)
+*Description, "Best for" use cases from the product spotlight, and the specification table from BigCommerce custom fields.*
 
 ## 7. Cart
 
@@ -146,6 +170,9 @@ faceted search with `categoryEntityId`, which includes all descendants, instead 
 - **`QtyStepper`**: −, a typeable field (commits on blur/Enter), +; Arrow Up/Down keys; clamped to 1–999; accessible labels.
 - **Checkout**: the cart's `redirectedCheckoutUrl` (BigCommerce hosted checkout) is created on each cart read.
 
+![Cart](images/cart.jpg)
+*The cart with quantity steppers: totals update instantly and save to BigCommerce after a short pause.*
+
 ## 8. Content pages
 
 - **Blog**: listing with hero, search (client-side text match over title and description), featured and all posts; post
@@ -154,6 +181,15 @@ faceted search with `categoryEntityId`, which includes all descendants, instead 
   **recommended products** that link to product pages with live price.
 - **FAQ**: grouped by `topic` (the select value is English; `topicLabel()` shows the French label), native
   `<details>` accordions.
+
+![A buying guide](images/guide.jpg)
+*A buying guide: numbered steps, pro tips, a checklist panel and recommended products with live prices.*
+
+![FAQ page](images/faq.jpg)
+*The FAQ page: hero banner, then questions grouped by topic.*
+
+![A blog post](images/blog-post.jpg)
+*A blog post: main column plus an author card.*
 
 ## 9. Editing support
 

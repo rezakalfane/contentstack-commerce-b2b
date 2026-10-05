@@ -6,12 +6,24 @@
 |---|---|
 | Stack name | "My Next Stack" (branch `main`) |
 | Region | **EU** → API `eu-api.contentstack.com`, CDN `eu-cdn.contentstack.com`, app `eu-app.contentstack.com`, preview `eu-rest-preview.contentstack.com` |
-| Environment | **`preview`** (the only environment; there is no `production` environment yet) |
+| Environments | **`preview`**: all content is published here and the storefront reads it today (Live Preview base URLs `http://localhost:3000` and `/fr`). **`production`**: created, with Live Preview base URLs for the Vercel domain (`https://contentstack-commerce-b2b.vercel.app` and `/fr`); **nothing is published to it yet and no delivery token is bound to it** |
 | Locales | `en-us` (master) and `fr-fr` (fallback → `en-us`) |
 | Plan | Free: **10 content types maximum** (all used) |
 
 Host names are derived from `CONTENTSTACK_REGION` in `lib/contentstack.ts` (`us` has no prefix; others are `<region>-…`).
 Using the wrong region's host returns *"api_key is not valid"*.
+
+### Switching the live site to the `production` environment
+
+The deployed site reads `preview` because the delivery token is bound to it (a token only sees its own environment; asking
+the Delivery API for `production` with it returns *"Environment was not found"*). To move the live site over:
+
+1. **Publish** every entry and asset to `production` (Publish Queue → bulk publish, or run the seeders with
+   `CONTENTSTACK_ENVIRONMENT=production` in `.env.local`).
+2. **Create a delivery token** bound to `production` (Settings → Tokens).
+3. In Vercel, **Production scope** only: set `CONTENTSTACK_ENVIRONMENT=production` and `CONTENTSTACK_DELIVERY_TOKEN` to the new
+   token; leave the Preview scope on `preview`.
+4. **Redeploy**, then check a page in both languages.
 
 ## Credentials
 

@@ -196,6 +196,17 @@ then "let's deploy on my Vercel and link GitHub repo", "BC store: have them gene
 - **Verified live:** pages in both languages, live prices and facets, redirects, security header, all images, and the cart
   flow end to end. No console errors.
 
+### 40. "Add screenshots and crops where it makes more sense in the docs. Tell me if you need me to capture some Contentstack pages"
+**Result:** Captured 19 storefront images from the live site (listing with filters, filter sidebar, mega menu, product page and
+details, cart, guide, FAQ, blog post, home sections, English/French comparison), plus a rendered **architecture diagram**
+(editable source in `docs/images/source/`), a colour palette and typography/component sheets. Embedded them in the README
+(gallery) and in `architecture`, `implementation`, `design-system`, `i18n` and `bigcommerce` docs. A script checks that no image
+link is broken. The Contentstack and Live Editor screens need to come from the user (the app is behind a login).
+
+While reading the screenshots the user sent next, noticed a **`production` environment now exists** in Contentstack (Live
+Preview base URLs set to the Vercel domain). The docs previously said only `preview` existed; corrected, and documented the
+steps to switch the live site over (content is still published only to `preview`).
+
 ---
 
 ## Things that did not work the first time (and why it matters)
