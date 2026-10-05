@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: "frame-ancestors 'self' https://*.contentstack.com https://*.contentstack.io",
           },
+          // Which Contentstack environment this deployment reads (not a secret). Handy to confirm a switch.
+          { key: "X-Content-Environment", value: process.env.CONTENTSTACK_ENVIRONMENT ?? "unset" },
         ],
       },
     ];
