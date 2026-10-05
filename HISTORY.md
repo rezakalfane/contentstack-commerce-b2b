@@ -181,6 +181,21 @@ a CSP `frame-ancestors` rule. See `docs/live-preview-and-visual-editor.md`.
 **Result:** Measured the palette's contrast ratios and corrected the docs; changed the guide step numbers from deep amber
 (2.3:1 on white) to ink; reviewed phone-width screenshots and made the filter panel start collapsed below 1024 px.
 
+### 39. "Let's deploy on my Vercel and link GitHub repo" (after publishing to GitHub)
+**Prompt sequence:** the repository was created first ("repository should be rezakalfane/contentstack-commerce-b2b, public"),
+then "let's deploy on my Vercel and link GitHub repo", "BC store: have them genericized" and "set vercel environment variables if not yet done".
+
+**Result:**
+- **GitHub:** public repo `rezakalfane/contentstack-commerce-b2b`. Before pushing, scanned every file for secrets (none), asked
+  which commit email to publish (the user chose a personal address; the work address never reached the remote), and
+  committed `.env.example`, which the `.env*` ignore rule had swallowed.
+- **Genericized** the BigCommerce store name and channel ID in the docs, README, HISTORY and code comments, and squashed the
+  history so the identifiers do not remain in any commit (the repo was minutes old, with no forks).
+- **Vercel:** created the project, connected the GitHub repo (pushes to `main` deploy to production), set the 8 storefront
+  variables for Production and Preview (tokens sensitive, management token deliberately excluded) and deployed.
+- **Verified live:** pages in both languages, live prices and facets, redirects, security header, all images, and the cart
+  flow end to end. No console errors.
+
 ---
 
 ## Things that did not work the first time (and why it matters)

@@ -1,5 +1,7 @@
 # Commerce B2B storefront
 
+**Live:** https://contentstack-commerce-b2b.vercel.app (English) and https://contentstack-commerce-b2b.vercel.app/fr (French)
+
 A headless B2B storefront for trade batteries. **Content** (pages, articles, guides, FAQs, navigation, banners) lives in
 **Contentstack**; the **catalog, prices and cart** live in **BigCommerce**; **Next.js 16** (App Router) composes them.
 The site is bilingual (English at `/`, French at `/fr`) and editors can edit it visually in Contentstack.

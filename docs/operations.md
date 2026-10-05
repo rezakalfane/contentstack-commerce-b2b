@@ -60,7 +60,40 @@ The current token expires in **January 2027**. Create a new one for each origin 
 `BIGCOMMERCE_STOREFRONT_TOKEN`, and redeploy. A stale token shows up as empty product sections and `[bigcommerce] … failed`
 messages in the server log.
 
-## Deployment (for example Vercel)
+## Production deployment (Vercel)
+
+| Item | Value |
+|---|---|
+| URL | https://contentstack-commerce-b2b.vercel.app |
+| Vercel project | `contentstack-commerce-b2b` (scope "Rza Kalfane's projects") |
+| Source | GitHub `rezakalfane/contentstack-commerce-b2b`, branch `main` |
+| Deploys | every push to `main` deploys to production; other branches and pull requests get preview deployments |
+| Variables | the 8 storefront variables, in Production and Preview (tokens marked *sensitive*); **no management token** |
+
+What was verified on the live site: English and French pages, live BigCommerce prices and facet counts, product pages,
+the 308 redirect from `/en/…`, the `frame-ancestors` header, every image (Contentstack and BigCommerce hosts), and the
+full cart flow (add, change quantity, persistence after reload, hosted-checkout link, remove).
+
+**The BigCommerce token worked from Vercel even though it was created for `http://localhost:3000`.** The allowed-origin
+setting governs browser (CORS) requests; server-to-server calls carry no `Origin` header. Creating a token per environment
+is still the tidier practice (separate expiry and revocation), but it is not required for this server-rendered storefront.
+
+**After the first deploy, in Contentstack** add the production Live Preview base URLs for both locales
+(`https://contentstack-commerce-b2b.vercel.app` and `https://contentstack-commerce-b2b.vercel.app/fr`), see
+[live-preview-and-visual-editor.md](live-preview-and-visual-editor.md).
+
+### Redeploying and changing variables
+
+```bash
+git push origin main                                   # deploys production automatically
+vercel deploy --prod --scope rza-kalfanes-projects     # or deploy from your machine
+printf '%s' "$VALUE" | vercel env add NAME production --sensitive --yes --scope rza-kalfanes-projects
+vercel env ls --scope rza-kalfanes-projects            # names and scopes only
+```
+
+Changing a variable needs a redeploy to take effect.
+
+## Deployment checklist for any host
 
 1. Set every variable above in the hosting project (Production and Preview scopes). Do **not** set the management token.
 2. Create a BigCommerce Storefront token whose allowed origin is the **production domain**; use it in production.
@@ -70,6 +103,8 @@ messages in the server log.
 5. Next.js on Vercel needs no extra config. `proxy.ts` runs on the Node.js runtime.
 
 ### Production readiness checklist
+
+Already done: deployed on Vercel with GitHub auto-deploy and all variables set (see above).
 
 - [ ] Create a **`production`** environment in Contentstack (today only `preview` exists), a delivery token for it, and
       publish content there; set `CONTENTSTACK_ENVIRONMENT=production`.

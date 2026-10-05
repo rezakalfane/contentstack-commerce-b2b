@@ -36,8 +36,10 @@ Two rules matter:
 
 1. A channel token must call the **channel-specific host**: `https://store-<hash>-<channel>.mybigcommerce.com/graphql`.
    The default store host answers *"JWT channel id doesn't match channel id of the URL"*.
-2. A token allows **one origin**. Create another token for the production domain (and for previews). Tokens expire (this one
-   in January 2027): rotate before then and redeploy.
+2. A token is created for **one allowed origin**, which governs *browser* (CORS) requests. This storefront calls BigCommerce
+   only from the server (no `Origin` header), and the token created for `http://localhost:3000` was verified to work from
+   Vercel. A token per environment is still the tidier practice. Tokens expire (this one in January 2027): rotate before
+   then and redeploy.
 
 The token is stored as `BIGCOMMERCE_STOREFRONT_TOKEN` and used only on the server (`lib/bigcommerce.ts`).
 
