@@ -119,7 +119,6 @@ Start with **[docs/README.md](docs/README.md)**. Highlights:
 
 - **All sample content is fictional.** Author names, article text, FAQ policies, delivery claims and the
   `example.com` contact details are placeholders. Replace them before going public.
-- **Photography** comes from pilesbatteries.com and is used with the owner's permission (text-free images only).
 - **Product names and brands are not translated**: they come from BigCommerce, where the store has no French
   translations. Navigation, categories, specs and all UI text are translated.
 - The Contentstack stack is on the **free plan** (10 content types maximum, currently all used).
