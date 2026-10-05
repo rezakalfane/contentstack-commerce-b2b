@@ -6,6 +6,8 @@ A headless B2B storefront for trade batteries. **Content** (pages, articles, gui
 **Contentstack**; the **catalog, prices and cart** live in **BigCommerce**; **Next.js 16** (App Router) composes them.
 The site is bilingual (English at `/`, French at `/fr`) and editors can edit it visually in Contentstack.
 
+![Commerce B2B homepage: photo hero, category mosaic and CMS-driven content, in the Workbench light theme](docs/images/homepage.jpg)
+
 ```
   Contentstack (EU)               BigCommerce (headless channel)
   content, 2 locales              catalog, prices, cart, checkout
