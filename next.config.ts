@@ -1,7 +1,31 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Only Contentstack's editor (Live Preview / Visual Editor) may embed the site in a frame.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors 'self' https://*.contentstack.com https://*.contentstack.io",
+          },
+        ],
+      },
+    ];
+  },
+  images: {
+    // Contentstack asset/image delivery hosts (all regions)
+    remotePatterns: [
+      { protocol: "https", hostname: "*-assets.contentstack.com" },
+      { protocol: "https", hostname: "assets.contentstack.io" },
+      { protocol: "https", hostname: "*-images.contentstack.com" },
+      { protocol: "https", hostname: "images.contentstack.io" },
+      // BigCommerce product images
+      { protocol: "https", hostname: "cdn11.bigcommerce.com" },
+    ],
+  },
 };
 
 export default nextConfig;

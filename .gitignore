@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# the template (variable names only, no values) is meant to be committed
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.seed-images/
+
+# python bytecode from scripts/seed
+__pycache__/
