@@ -47,6 +47,10 @@ The site is bilingual (English at `/`, French at `/fr`) and editors can edit it 
 <td><img src="docs/images/mega-menu.jpg" alt="Product mega menu"><br><sub>Mega menu built from the live category tree</sub></td>
 <td><img src="docs/images/guide.jpg" alt="Buying guide"><br><sub>Buying guide with numbered steps and recommended products</sub></td>
 </tr>
+<tr>
+<td><img src="docs/images/cs-visual-editor-en.jpg" alt="Visual Editor on the English home page"><br><sub>Visual Editor: click a field on the page to edit it, the form stays in sync</sub></td>
+<td><img src="docs/images/cs-content-types.jpg" alt="Contentstack content types"><br><sub>The ten content types in Contentstack</sub></td>
+</tr>
 </table>
 
 ## Quick start

@@ -21,6 +21,9 @@ Contentstack app ── entry form edits ──► draft stored under a "live pr
 - **Edit tags** (`data-cslp` attributes) mark which field each element shows. In **Visual Editor**, clicking an element
   opens its field; hovering shows an outline and a label (for example "Hero Banner : Banner Title").
 
+![Visual Editor, English home page](images/cs-visual-editor-en.jpg)
+*Visual Experience on the English home page: hovering shows the field ("Hero Banner : Banner Description"), clicking edits it inline, and the form on the right stays in sync.*
+
 ## One-time setup in Contentstack
 
 1. **Settings → Live Preview**: enable it, choose the **`preview`** environment, and add the **preview token**.
@@ -35,6 +38,9 @@ Contentstack app ── entry form edits ──► draft stored under a "live pr
 3. Enable **Visual Experience / Visual Editor** for the stack and use the same base URLs.
 4. For each content type with a URL (blog, guides) and for `page`, Live Preview resolves the entry from the page URL;
    our pages also declare their entry explicitly (see below).
+
+![Environments and base URLs](images/cs-environments.jpg)
+*Settings → Environments lists each environment's Live Preview base URL per locale: `production` → the Vercel domain, `preview` → localhost.*
 
 ## Application setup
 
@@ -88,6 +94,9 @@ Fields tagged today:
 | Spotlights | title and tagline |
 | Site chrome | announcement message, header link labels, footer legal line |
 
+![Click-to-edit on a guide step](images/cs-visual-editor-guide-step.jpg)
+*A French buying guide in Visual Editor: "Buying Guide : Step body" is outlined on hover, and the numbered steps, checklist and recommended products are real fields.*
+
 Repeatable fields need two kinds of tag (found when the guide checklist could not be edited visually):
 
 | Tag | Spread on | Effect |
@@ -103,6 +112,9 @@ BigCommerce data (names, prices, images) is **not** editable here: it is edited 
 
 Each locale has its own base URL, so editing the French entry opens `/fr/...` and reads `fr-fr` content. The locale comes
 from the route (`/fr`), not from the query string.
+
+![Visual Editor, French home page](images/cs-visual-editor-fr.jpg)
+*The French locale (`fr-fr`) in Visual Editor: the page at `/fr` loads, the language switcher shows FR, and the rich-text field is outlined ("Page : Rich Text").*
 
 ## Troubleshooting
 

@@ -207,6 +207,20 @@ While reading the screenshots the user sent next, noticed a **`production` envir
 Preview base URLs set to the Vercel domain). The docs previously said only `preview` existed; corrected, and documented the
 steps to switch the live site over (content is still published only to `preview`).
 
+### 41. "Can I copy/paste prod tokens here?" / "Let's create the production token update and deploy" (and "have you included these screenshots in the right doc?")
+**Result:** Advised **against** pasting tokens into the chat. Published all content (80 entries per language, 75 assets) to the
+`production` environment with a new reusable script (`publish_environment.py`). Contentstack does not let a management token
+create delivery tokens, so the user created a production delivery token and preview token in the app and saved them to a
+temporary local file outside the repo; they were verified against the API (new token accepted, a wrong one rejected), copied to
+Vercel's **Production scope only** without ever being displayed, and the file deleted. Redeployed and verified: the new
+`X-Content-Environment` header changed from `preview` to `production`, 16 pages in both languages and every image work.
+Preview deployments and local development still read `preview`. Also rebased onto a README edit made directly on GitHub.
+
+The ten Contentstack screenshots (content types, builder, entries, assets, environments, languages, GraphQL Explorer, Visual
+Editor in English and French, guide step) were on the user's Desktop all along; an earlier lookup missed them (a wrong `ls` flag, and
+macOS puts a narrow no-break space in the file names). They are now cropped (browser tabs and URL bar removed, since the URL holds
+the stack API key) and embedded in the `contentstack`, `live-preview-and-visual-editor`, `i18n` docs and the README.
+
 ---
 
 ## Things that did not work the first time (and why it matters)

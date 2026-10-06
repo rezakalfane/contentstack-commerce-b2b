@@ -68,7 +68,7 @@ messages in the server log.
 | Vercel project | `contentstack-commerce-b2b` (scope "Rza Kalfane's projects") |
 | Source | GitHub `rezakalfane/contentstack-commerce-b2b`, branch `main` |
 | Deploys | every push to `main` deploys to production; other branches and pull requests get preview deployments |
-| Variables | the 8 storefront variables, in Production and Preview (tokens marked *sensitive*); **no management token** |
+| Variables | the 8 storefront variables, in Production and Preview scopes (tokens marked *sensitive*); **no management token**. **Production** reads Contentstack's `production` environment with its own delivery and preview tokens; **Preview** reads `preview` |
 
 What was verified on the live site: English and French pages, live BigCommerce prices and facet counts, product pages,
 the 308 redirect from `/en/…`, the `frame-ancestors` header, every image (Contentstack and BigCommerce hosts), and the
@@ -107,8 +107,9 @@ Changing a variable needs a redeploy to take effect.
 Already done: deployed on Vercel with GitHub auto-deploy and all variables set (see above).
 
 - [x] A **`production`** environment exists in Contentstack, with Live Preview base URLs for both locales on the Vercel domain.
-- [ ] Publish content to `production`, create a delivery token bound to it, and set `CONTENTSTACK_ENVIRONMENT=production` plus
-      that token in Vercel's **Production** scope ([contentstack.md](contentstack.md#switching-the-live-site-to-the-production-environment)).
+- [x] All content is published to `production`; the live site reads it with its own delivery and preview tokens
+      ([contentstack.md](contentstack.md#environments-and-tokens)). Confirm with the `X-Content-Environment` response header.
+- [ ] Editors: publish to **both** environments (or a release/workflow gate between them, see [decisions.md](decisions.md)).
 - [ ] Replace all fictional sample content (authors, article text, FAQ policies, promotions, contact details).
 - [ ] Add **publish webhooks** → Next.js revalidation (tags or paths), then cache Contentstack reads.
 - [ ] Add BigCommerce **Store Translations** for French product content (or accept English product names).

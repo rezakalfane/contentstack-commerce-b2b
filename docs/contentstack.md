@@ -6,24 +6,44 @@
 |---|---|
 | Stack name | "My Next Stack" (branch `main`) |
 | Region | **EU** → API `eu-api.contentstack.com`, CDN `eu-cdn.contentstack.com`, app `eu-app.contentstack.com`, preview `eu-rest-preview.contentstack.com` |
-| Environments | **`preview`**: all content is published here and the storefront reads it today (Live Preview base URLs `http://localhost:3000` and `/fr`). **`production`**: created, with Live Preview base URLs for the Vercel domain (`https://contentstack-commerce-b2b.vercel.app` and `/fr`); **nothing is published to it yet and no delivery token is bound to it** |
+| Environments | **`production`**: the live site (Live Preview base URLs `https://contentstack-commerce-b2b.vercel.app` and `/fr`). **`preview`**: local development and Vercel Preview deployments (`http://localhost:3000` and `/fr`). All content is published to both. See *Environments and tokens* below |
 | Locales | `en-us` (master) and `fr-fr` (fallback → `en-us`) |
 | Plan | Free: **10 content types maximum** (all used) |
 
 Host names are derived from `CONTENTSTACK_REGION` in `lib/contentstack.ts` (`us` has no prefix; others are `<region>-…`).
 Using the wrong region's host returns *"api_key is not valid"*.
 
-### Switching the live site to the `production` environment
+![Environments in Contentstack](images/cs-environments.jpg)
+*Settings → Environments: `production` (the live site) and `preview` (local development and Preview deployments), each with its own Live Preview base URL per locale.*
 
-The deployed site reads `preview` because the delivery token is bound to it (a token only sees its own environment; asking
-the Delivery API for `production` with it returns *"Environment was not found"*). To move the live site over:
+![Languages in Contentstack](images/cs-languages.jpg)
+*Settings → Languages: English (the default and master) and French, which falls back to English.*
 
-1. **Publish** every entry and asset to `production` (Publish Queue → bulk publish, or run the seeders with
-   `CONTENTSTACK_ENVIRONMENT=production` in `.env.local`).
-2. **Create a delivery token** bound to `production` (Settings → Tokens).
-3. In Vercel, **Production scope** only: set `CONTENTSTACK_ENVIRONMENT=production` and `CONTENTSTACK_DELIVERY_TOKEN` to the new
-   token; leave the Preview scope on `preview`.
-4. **Redeploy**, then check a page in both languages.
+### Environments and tokens
+
+Two environments, with **all content published to both**:
+
+| Environment | Read by | Token scope |
+|---|---|---|
+| `production` | the live site on Vercel (Production scope) | a delivery token **and** a preview token bound to `production` |
+| `preview` | local development and Vercel Preview deployments | a delivery token and a preview token bound to `preview` |
+
+A delivery token only sees its own environment: asking the Delivery API for `production` with the `preview` token returns
+*"Environment was not found"*. Each deployment reports its environment in the **`X-Content-Environment`** response header
+(`curl -sI https://contentstack-commerce-b2b.vercel.app | grep -i x-content`).
+
+**Editors must publish to `production` for the live site to change.** Publishing only to `preview` updates local
+development and previews but not the live site. Select both environments in the publish dialog (or use
+`python3 scripts/seed/publish_environment.py production` to publish everything at once; it is idempotent).
+
+**Creating tokens.** Delivery and preview tokens can only be created in the Contentstack app (Settings → Tokens →
+Delivery Tokens, with *Create Preview Token* on). A **management token cannot** create them (the API answers *"insufficient
+permissions"*). Put the values straight into Vercel (dashboard, or `vercel env add … production --sensitive`); never paste
+them into chats or commit them.
+
+To move another environment over, repeat what was done for `production`: publish the content, create its two tokens, set
+`CONTENTSTACK_ENVIRONMENT`, `CONTENTSTACK_DELIVERY_TOKEN` and `CONTENTSTACK_PREVIEW_TOKEN` for that deployment scope in
+Vercel, and redeploy.
 
 ## Credentials
 
@@ -37,6 +57,9 @@ the Delivery API for `production` with it returns *"Environment was not found"*)
 ## Content types
 
 Ten types, all in `scripts/seed/schemas.py` (the last five) or created by the starter kit (the first five).
+
+![Content types in Contentstack](images/cs-content-types.jpg)
+*Content Models → Content Types: the ten types (nine multiple, plus the single `Site Navigation`). The free plan allows no more.*
 
 ### Starter types
 
@@ -60,6 +83,9 @@ Ten types, all in `scripts/seed/schemas.py` (the last five) or created by the st
 
 Select (enum) fields store **fixed English values**; the storefront maps them to French labels for display
 (`topicLabel`, `audienceLabel`, `badgeLabel` in `lib/i18n.ts`). Add a new choice in both places.
+
+![The Buying Guide content type](images/cs-content-type-buying-guide.jpg)
+*The Buying Guide type in the content type builder: URL, summary, hero image, audience, read time and the repeatable **Steps** group (step title, step body, pro tip).*
 
 ### Rules that bit us (and are enforced by the API)
 
@@ -88,6 +114,9 @@ Select (enum) fields store **fixed English values**; the storefront maps them to
 All content is fictional sample text. Replace it in Contentstack, or edit the seed data and re-run the scripts
 ([seeding.md](seeding.md)).
 
+![Entries in Contentstack](images/cs-entries.jpg)
+*Entries filtered to Buying Guide: the six guides, their URLs and where they are published. (This capture was taken before the production environment was filled, so it shows only `preview`.)*
+
 ## Publishing
 
 Entries and assets must be **published to `preview`** to be visible through the delivery token. For a localized entry the
@@ -106,8 +135,19 @@ A localized (`fr-fr`) entry is a full copy of the master with translated fields.
 non-translatable field (an image) on the English entry does **not** update the French entry. Either edit both, or
 re-run `seed_fr.py`. Untranslated entries fall back to English at read time (`includeFallback`). See [i18n.md](i18n.md).
 
+## Inspecting content with the GraphQL Explorer
+
+Contentstack also exposes a GraphQL API. The storefront uses the Delivery SDK, but the **GraphQL Explorer** (Settings → GraphQL
+Explorer, with a delivery token and a branch) is the quickest way to see exactly what a published entry looks like:
+
+![GraphQL Explorer](images/cs-graphql-explorer.jpg)
+*Querying `all_buying_guide { items { url title checklist } }` with the delivery token: the published guides and their checklists.*
+
 ## Assets
 
 Images are generated or cropped by the seeders and uploaded to the root of the asset library. They are served from
 `eu-images.contentstack.com` (allowed in `next.config.ts`); the Image Delivery API supports URL parameters for resizing
 if you want Contentstack to do the transformations instead of `next/image`.
+
+![Asset library](images/cs-assets.jpg)
+*The asset library: author avatars, post and guide photos, hero images. (Contentstack's own starter assets, such as the Kickstarts and Discord tiles, are from the starter kit.)*
