@@ -67,7 +67,8 @@ messages in the server log.
 | URL | https://contentstack-commerce-b2b.vercel.app |
 | Vercel project | `contentstack-commerce-b2b` (scope "Rza Kalfane's projects") |
 | Source | GitHub `rezakalfane/contentstack-commerce-b2b`, branch `main` |
-| Deploys | every push to `main` deploys to production; other branches and pull requests get preview deployments |
+| Deploys | every push to `main` deploys to production; the `staging` branch (rebuilt from `main` by a GitHub Action) deploys the staging site; other branches and pull requests get preview deployments |
+| Staging | https://contentstack-commerce-b2b-git-staging-rza-kalfanes-projects.vercel.app, reads the `preview` environment, public (deployment protection off for previews, `noindex`). See [workflow.md](workflow.md) |
 | Variables | the 8 storefront variables, in Production and Preview scopes (tokens marked *sensitive*); **no management token**. **Production** reads Contentstack's `production` environment with its own delivery and preview tokens; **Preview** reads `preview` |
 
 What was verified on the live site: English and French pages, live BigCommerce prices and facet counts, product pages,
@@ -81,6 +82,9 @@ is still the tidier practice (separate expiry and revocation), but it is not req
 **After the first deploy, in Contentstack** add the production Live Preview base URLs for both locales
 (`https://contentstack-commerce-b2b.vercel.app` and `https://contentstack-commerce-b2b.vercel.app/fr`), see
 [live-preview-and-visual-editor.md](live-preview-and-visual-editor.md).
+
+![Vercel project overview](images/vercel-overview.jpg)
+*Vercel project overview: production from `main`, and the `staging` branch under Active Branches.*
 
 ### Redeploying and changing variables
 
@@ -109,7 +113,8 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 - [x] A **`production`** environment exists in Contentstack, with Live Preview base URLs for both locales on the Vercel domain.
 - [x] All content is published to `production`; the live site reads it with its own delivery and preview tokens
       ([contentstack.md](contentstack.md#environments-and-tokens)). Confirm with the `X-Content-Environment` response header.
-- [ ] Editors: publish to **both** environments (or a release/workflow gate between them, see [decisions.md](decisions.md)).
+- [x] Review gate between `preview` and `production`: staging site plus workflow and publishing rule ([workflow.md](workflow.md)).
+- [ ] Editors: follow the routine in [workflow.md](workflow.md#the-editor-routine); turn on *Prevent self-approval* once there is a second approver.
 - [ ] Replace all fictional sample content (authors, article text, FAQ policies, promotions, contact details).
 - [ ] Add **publish webhooks** → Next.js revalidation (tags or paths), then cache Contentstack reads.
 - [ ] Add BigCommerce **Store Translations** for French product content (or accept English product names).
@@ -146,5 +151,6 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 - No buyer sign-in, per-company pricing, quotes or order history (B2B Edition is not yet integrated).
 - Product text is English only.
 - Contentstack reads are not cached by Next.js (each request reads the CDN).
+- The review gate covers content only, not code; editing an Approved entry does not reset its stage ([workflow.md](workflow.md#what-the-gate-does-not-cover)).
 - The Contentstack free plan allows 10 content types; all are in use.
 - Search on the blog is a simple in-memory text match over the 100 most recent posts.

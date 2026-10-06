@@ -30,6 +30,16 @@ to localize a subset.
 > **Order matters.** French entries are **copies** of the English ones at the moment they are localized. After changing
 > anything non-translatable in English (an image, a reference), run `seed_fr.py` again.
 
+## Workflow and publishing
+
+New entries start in the **Draft** stage, and production only accepts **Approved** ones ([workflow.md](workflow.md)):
+
+```bash
+python3 scripts/seed/workflow.py [--baseline]                      # create the workflow and publishing rule (idempotent)
+python3 scripts/seed/publish_environment.py preview                # publish everything to the staging environment
+python3 scripts/seed/publish_environment.py production --approve   # approve, then publish everything to production
+```
+
 ## Files
 
 | File | Role |

@@ -29,7 +29,7 @@ Contentstack app ── entry form edits ──► draft stored under a "live pr
 1. **Settings → Live Preview**: enable it, choose the **`preview`** environment, and add the **preview token**.
 2. Set the **Base URL for each locale** (this is the "base URL" needed for French):
 
-   | Locale | Base URL (local development) |
+   | Locale | Base URL (`local` environment) |
    |---|---|
    | English (en-us) | `http://localhost:3000` |
    | French (fr-fr) | `http://localhost:3000/fr` |
@@ -40,7 +40,7 @@ Contentstack app ── entry form edits ──► draft stored under a "live pr
    our pages also declare their entry explicitly (see below).
 
 ![Environments and base URLs](images/cs-environments.jpg)
-*Settings → Environments lists each environment's Live Preview base URL per locale: `production` → the Vercel domain, `preview` → localhost.*
+*Settings → Environments lists each environment's Live Preview base URL per locale: `production` → the live site, `preview` → the staging site, `local` → localhost. Pick the environment in Visual Editor to edit against it ([workflow.md](workflow.md)).*
 
 ## Application setup
 

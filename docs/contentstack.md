@@ -6,7 +6,7 @@
 |---|---|
 | Stack name | "My Next Stack" (branch `main`) |
 | Region | **EU** → API `eu-api.contentstack.com`, CDN `eu-cdn.contentstack.com`, app `eu-app.contentstack.com`, preview `eu-rest-preview.contentstack.com` |
-| Environments | **`production`**: the live site (Live Preview base URLs `https://contentstack-commerce-b2b.vercel.app` and `/fr`). **`preview`**: local development and Vercel Preview deployments (`http://localhost:3000` and `/fr`). All content is published to both. See *Environments and tokens* below |
+| Environments | **`production`**: the live site. **`preview`**: the staging site (Vercel branch `staging`). **`local`**: localhost (nothing published). Publishing to `production` needs the entry to be **Approved** ([workflow.md](workflow.md)). See *Environments and tokens* below |
 | Locales | `en-us` (master) and `fr-fr` (fallback → `en-us`) |
 | Plan | Free: **10 content types maximum** (all used) |
 
@@ -14,27 +14,29 @@ Host names are derived from `CONTENTSTACK_REGION` in `lib/contentstack.ts` (`us`
 Using the wrong region's host returns *"api_key is not valid"*.
 
 ![Environments in Contentstack](images/cs-environments.jpg)
-*Settings → Environments: `production` (the live site) and `preview` (local development and Preview deployments), each with its own Live Preview base URL per locale.*
+*Settings → Environments: `production` (the live site), `preview` (the staging site) and `local` (localhost), each with its own Live Preview base URL per locale.*
 
 ![Languages in Contentstack](images/cs-languages.jpg)
 *Settings → Languages: English (the default and master) and French, which falls back to English.*
 
 ### Environments and tokens
 
-Two environments, with **all content published to both**:
+Three environments. Content is published to `preview` first, then (once approved) to `production`; nothing is published to `local`:
 
 | Environment | Read by | Token scope |
 |---|---|---|
 | `production` | the live site on Vercel (Production scope) | a delivery token **and** a preview token bound to `production` |
-| `preview` | local development and Vercel Preview deployments | a delivery token and a preview token bound to `preview` |
+| `preview` | the staging site and Vercel Preview deployments, and local development (`.env.local`) | a delivery token and a preview token bound to `preview` |
+| `local` | nothing reads it; a base URL so Visual Editor can open `localhost` | none |
 
 A delivery token only sees its own environment: asking the Delivery API for `production` with the `preview` token returns
 *"Environment was not found"*. Each deployment reports its environment in the **`X-Content-Environment`** response header
 (`curl -sI https://contentstack-commerce-b2b.vercel.app | grep -i x-content`).
 
-**Editors must publish to `production` for the live site to change.** Publishing only to `preview` updates local
-development and previews but not the live site. Select both environments in the publish dialog (or use
-`python3 scripts/seed/publish_environment.py production` to publish everything at once; it is idempotent).
+**Going live is gated.** Publish to `preview` and check the staging site, set the entry's workflow stage to **Approved**,
+then publish to `production`; Contentstack refuses the production publish for any entry that is not Approved. The full
+routine, the publishing rule and its limits are in [workflow.md](workflow.md). To publish everything at once:
+`python3 scripts/seed/publish_environment.py production --approve` (idempotent; `--approve` first moves entries to Approved).
 
 **Creating tokens.** Delivery and preview tokens can only be created in the Contentstack app (Settings → Tokens →
 Delivery Tokens, with *Create Preview Token* on). A **management token cannot** create them (the API answers *"insufficient

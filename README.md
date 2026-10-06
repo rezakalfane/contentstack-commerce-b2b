@@ -114,6 +114,7 @@ Start with **[docs/README.md](docs/README.md)**. Highlights:
 - [Live Preview and Visual Editor](docs/live-preview-and-visual-editor.md): live sync and inline editing
 - [BigCommerce](docs/bigcommerce.md): channel, token, queries, listing, cart
 - [Internationalization](docs/i18n.md): locales, URLs, translation workflow
+- [Editorial workflow](docs/workflow.md): staging site, approval stages, production publishing rule
 - [Seeding](docs/seeding.md): sample content scripts
 - [Design system](docs/design-system.md): tokens, type, components
 - [Operations](docs/operations.md): environment variables, deployment, troubleshooting

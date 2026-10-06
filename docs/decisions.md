@@ -153,10 +153,21 @@ guide heroes use photography, not composed product shots.
 **Decision.** Authors, article text, FAQ policies, delivery claims and contact details are placeholders (`example.com`).
 **Why.** Nothing in the site should be mistaken for real policy or real people. Replace before launch.
 
+### D27. Review gate: staging site plus a workflow and publishing rule
+**Decision.** Edits are published to `preview` and checked on a public staging site (branch `staging`); a Contentstack workflow
+(Draft, In review, Approved) with a publishing rule lets only **Approved** entries reach `production`.
+**Why.** The gate is enforced by Contentstack, not by habit, and costs nothing on the free plan. A Release was rejected as the
+only gate because it does not block a direct publish. **Known limits** (editing an Approved entry keeps its stage, self-approval
+with one admin, code is not gated) are listed in [workflow.md](workflow.md).
+
+### D28. Staging is public and rebuilt by an empty commit
+**Decision.** Vercel deployment protection is off for previews, and a GitHub Action rebuilds `staging` from `main` with an empty
+commit on every push.
+**Why.** Contentstack's Live Preview iframe and reviewers need to open the URL without a Vercel login (Vercel adds `noindex`).
+Vercel skips a branch whose tip it already built, so the empty commit forces a fresh deployment.
+
 ## Open questions
 
-- Content is published to both `preview` and `production`, and the live site reads `production`. Do we want a gate between them
-  (a Contentstack release, workflow or approval) so that edits can be reviewed on `preview` before going live?
 - Will buyers **sign in** (B2B Edition companies, price lists, quotes)? Today "your negotiated prices" is aspirational copy.
 - Do we want **translated slugs** for French SEO (reverses D9)?
 - Should category tiles and the home category mosaic move into Contentstack (needs a type slot)?

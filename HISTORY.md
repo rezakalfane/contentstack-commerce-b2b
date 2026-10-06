@@ -221,6 +221,20 @@ Editor in English and French, guide step) were on the user's Desktop all along; 
 macOS puts a narrow no-break space in the file names). They are now cropped (browser tabs and URL bar removed, since the URL holds
 the stack API key) and embedded in the `contentstack`, `live-preview-and-visual-editor`, `i18n` docs and the README.
 
+### 42. "Sure, how are you going to do it?" (review gate), "don't see it", and the workflow screenshots
+**Result:** Added an editorial gate between Contentstack `preview` and `production`. The user chose a **Workflow + publishing
+rule** and a **public staging URL**. A "Review before live" workflow (Draft, In review, Approved; Approved is Admin-only) covers
+all ten content types, and a publishing rule refuses production publishes for entries that are not Approved. It was tested with a
+temporary entry: Draft and In review were refused for `production`, allowed for `preview`, and Approved was accepted. All 160
+existing entries were baselined to Approved. A `staging` branch is rebuilt from `main` by a GitHub Action (with an empty commit,
+because Vercel skips a branch tip it already built); Vercel's SSO protection was disabled for previews so the staging URL opens
+without login. A "Deployment is building" placeholder initially returned 200, so checks look at the page title instead. The user
+pointed the `preview` environment at the staging URL and added a `local` environment.
+
+Documentation: the workflow got its own page, [docs/workflow.md](docs/workflow.md), with seven screenshots (environments, workflow
+scope and stages, publishing rule scope and conditions, Vercel overview and staging deployment). `contentstack`, `operations`,
+`seeding`, `decisions` (D27, D28; the open question is closed) and the docs index were updated, with limits stated plainly.
+
 ---
 
 ## Things that did not work the first time (and why it matters)
