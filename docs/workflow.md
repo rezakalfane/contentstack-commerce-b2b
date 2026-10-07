@@ -49,7 +49,7 @@ the staging site, `local` → localhost (Visual Editor can open any of them; not
 
 ## The Contentstack workflow
 
-A workflow named **Review before live** applies to all ten content types on the `main` branch. Every entry, in each language,
+A workflow named **Review before live** applies to all ten content types on the `main` branch (eight once the pending prune has removed `blog_listing_page` and `hero_banner`). Every entry, in each language,
 is in one of three stages:
 
 | Stage | Meaning | Who can move an entry into it |
@@ -136,8 +136,8 @@ Be clear about its limits:
 The workflow and rule are created by an idempotent script, so a new stack can be set up the same way:
 
 ```bash
-python3 scripts/seed/workflow.py              # creates the workflow and the production publishing rule (skips what exists)
-python3 scripts/seed/workflow.py --baseline   # ...and marks every existing entry Approved (once, on a stack already live)
+python3 tools/contentstack/workflow.py      # creates the workflow and the production publishing rule (skips what exists)
+python3 tools/contentstack/workflow.py --baseline # ...and marks every existing entry Approved (once, on a stack already live)
 ```
 
 The staging side needs three things: a `staging` branch, Vercel Preview-scope variables that point at the `preview`

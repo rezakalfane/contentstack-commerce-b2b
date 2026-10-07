@@ -1,6 +1,6 @@
 # Seeding sample content
 
-The Python scripts in `scripts/seed/` create and refresh all sample content in Contentstack through the **Management API**
+The Python scripts in `tools/contentstack/` create and refresh all sample content in Contentstack through the **Management API**
 (CMA). They are **idempotent**: entries are looked up by `title` and updated rather than duplicated, so they are safe to
 re-run.
 
@@ -17,12 +17,17 @@ Credentials are read from `.env.local` and are never printed (error output is re
 ## Run order
 
 ```bash
-cd storefront
-python3 scripts/seed/schemas.py      # 1. content types (faq, buying_guide, product_spotlight, announcement_bar, site_navigation)
-python3 scripts/seed/seed.py         # 2. 6 authors, 36 posts, hero + blog listing
-python3 scripts/seed/seed_extra.py   # 3. FAQs, guides, spotlights, announcements, navigation, hero banners, pages
-python3 scripts/seed/seed_fr.py      # 4. French (fr-fr) versions of everything
+python3 tools/contentstack/schemas.py      # 1. content types (faq, buying_guide, product_spotlight, announcement_bar, site_navigation)
+python3 tools/contentstack/seed.py         # 2. 6 authors, 36 posts, hero + blog listing
+python3 tools/contentstack/seed_extra.py   # 3. FAQs, guides, spotlights, announcements, navigation, hero banners, pages
+python3 tools/contentstack/seed_fr.py      # 4. French (fr-fr) versions of everything
+python3 tools/contentstack/blocks.py       # 5. the block model, added on top (additive), both locales
 ```
+
+Steps 1 to 4 still create the earlier fixed-layout content (the `hero_banner`, `blog_listing_page` and `page` fields the block model replaced);
+`blocks.py` then adds `page.components` and `blog_landing_page.content` + `read_time` and fills them (the pages `home`, `faq`, `guides` and a new `blog`
+page, each with its blocks, and for every post a text block copied from its `body`), in English and French, publishing what it changes. It is idempotent
+and leaves the earlier fields filled, so the old site keeps working until the prune is run.
 
 `seed_fr.py` accepts `--only author,hero_banner,blog_landing_page,blog_listing_page,faq,buying_guide,product_spotlight,announcement_bar,site_navigation,page`
 to localize a subset.
@@ -35,9 +40,9 @@ to localize a subset.
 New entries start in the **Draft** stage, and production only accepts **Approved** ones ([workflow.md](workflow.md)):
 
 ```bash
-python3 scripts/seed/workflow.py [--baseline]                      # create the workflow and publishing rule (idempotent)
-python3 scripts/seed/publish_environment.py preview                # publish everything to the staging environment
-python3 scripts/seed/publish_environment.py production --approve   # approve, then publish everything to production
+python3 tools/contentstack/workflow.py [--baseline]                 # create the workflow and publishing rule (idempotent)
+python3 tools/contentstack/publish_environment.py preview           # publish everything to the staging environment
+python3 tools/contentstack/publish_environment.py production --approve # approve, then publish everything to production
 ```
 
 ## Files
@@ -48,6 +53,9 @@ python3 scripts/seed/publish_environment.py production --approve   # approve, th
 | `seed.py` | API helper, asset upload, entry upsert, publish; seeds authors, posts, related posts, blog hero and listing |
 | `seed_extra.py` | FAQs, buying guides, product spotlights, announcement bars, navigation, hero banners, `page` entries (home, FAQ, guides) |
 | `seed_fr.py` | localizes and publishes the French versions |
+| `blocks.py` | adds the block model (`page.components`, `blog_landing_page.content` and `read_time`) and fills it, both locales; additive and idempotent |
+| `backup.py` | saves every content type and the entries of both locales to `.backups/contentstack-<timestamp>.json` (gitignored, never commit it) |
+| `prune.py` | removes what the block model replaced; a dry run unless `--run` (see below) |
 | `content.py` | English authors and the 36 posts (title, intro, two sections, takeaways) |
 | `content_extra.py` | FAQs, product keys (`P`), guides, spotlights, announcements, home page, navigation |
 | `content_fr.py`, `content_fr_posts.py` | French translations, in the same order and shape as the English data |
@@ -96,7 +104,7 @@ so entries are found by their **English** title.
 ### Add a blog post
 1. Append a tuple to the right author's list in `content.POSTS` (title, intro, (heading, paragraph) ×2, takeaways).
 2. Append its French translation at the same position in `content_fr_posts.POSTS_FR`.
-3. Update the count assertions if you keep them (`assert len(...) == 6`), then run `seed.py` and `seed_fr.py --only blog_landing_page`.
+3. Update the count assertions if you keep them (`assert len(...) == 6`), then run `seed.py`, `seed_fr.py --only blog_landing_page` and `blocks.py` (which gives the post its `content` block and `read_time`).
 
 ### Add a buying guide
 1. Add recommended products to `P` in `content_extra.py` (`"key": (bigcommerce_product_id, "SKU")`). Look IDs up with
@@ -110,11 +118,27 @@ so entries are found by their **English** title.
 Edit `FAQS` / `FAQS_FR` (same order), run `seed_extra.py` then `seed_fr.py --only faq`. `topic` must be one of the five allowed values.
 
 ### Change the home page
-Edit `HOME`, `HEROES`, `HOME_BLOCK_PHOTOS` in `seed_extra.py` / `content_extra.py` and the French in `content_fr.py`
-(`HOME_FR`, `HEROES_FR`). Run `seed_extra.py` then `seed_fr.py --only page,hero_banner`.
+To change the seeded content, edit `HOME`, `HEROES`, `HOME_BLOCK_PHOTOS` in `seed_extra.py` / `content_extra.py` and the French in `content_fr.py`
+(`HOME_FR`, `HEROES_FR`). Run `seed_extra.py`, `seed_fr.py --only page,hero_banner` and `blocks.py` (the home blocks are built in `page_components()` in `blocks.py`, from the same data).
+
+### Backup and prune
+
+The block model was added **next to** the earlier fixed-layout model, and the site now reads only the new one. The earlier model is still in the stack:
+`page.image`, `rich_text`, `blocks`, `hero`; `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`; and the `blog_listing_page`
+and `hero_banner` types with their entries. The order for removing it:
+
+1. `python3 tools/contentstack/backup.py`: saves content types and entries (both locales) to `.backups/`.
+2. Deploy the storefront that reads `components` / `content`, and check production and staging.
+3. `python3 tools/contentstack/prune.py`: a **dry run** that lists, for each content type, the fields it would remove and, for the two superseded types,
+   how many entries it would delete.
+4. `python3 tools/contentstack/prune.py --run`: removes those fields, then deletes the two types (`force`, which deletes their entries). The stack goes
+   from ten content types to eight.
+
+**Status: the new code is not deployed yet and the prune has not been run; it awaits approval.** Note that `seed.py`, `seed_extra.py` and `seed_fr.py`
+still write the earlier model, so run them only before the prune (or adapt them first); re-run `blocks.py` after them.
 
 ### Start over
-There is no destructive reset. To remove content, delete entries in the Contentstack app (or via CMA) and re-run the
+There is no destructive reset (apart from the prune above). To remove content, delete entries in the Contentstack app (or via CMA) and re-run the
 seeds. Deleting assets that are still referenced is rejected by Contentstack; list references with
 `GET /assets/<uid>/references` first.
 

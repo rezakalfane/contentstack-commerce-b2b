@@ -10,14 +10,22 @@ Contentstack app ── entry form edits ──► draft stored under a "live pr
         │
         └─ iframe: http://localhost:3000/<page>?live_preview=<hash>&content_type_uid=…&entry_uid=…&locale=…
                               │
+        proxy.ts: verify the parameters, set trusted x-preview / x-cs-* headers
+                              │
         Next.js (server) ◄────┘   getStack(preview): preview token + host eu-rest-preview.contentstack.com
                                   + stack.livePreviewQuery(params)  → entries read from the DRAFT
 ```
 
 - **SSR mode** (`ssr: true`): after each edit the preview pane asks the site for fresh HTML; our Server Components read
   the draft through the preview host and render it. No client-side data fetching is needed.
-- The **hash** in the URL identifies the draft session. `lib/contentstack.ts → previewParams()` extracts it and
-  `getStack(preview)` applies it with `livePreviewQuery()`.
+- The **hash** in the URL identifies the draft session. `proxy.ts` checks for it (`previewGate` in `providers/cms/gates.ts`), removes any
+  `x-preview` / `x-cs-*` header a client sent, and passes the hash and the entry being edited on as trusted `x-preview` and `x-cs-*` headers.
+  `previewParams()` (`providers/cms/contentstack/client.ts`) reads them and `getStack(preview)` applies them with `livePreviewQuery()`.
+- **The editor header.** The first request of the preview pane carries no hash yet, but the SDK must already be on that page to take over
+  afterwards. `proxy.ts` therefore marks a request with `x-editor` when it has `live_preview` or is an iframe navigation whose `Referer` is
+  Contentstack's app, and `components/edit-support.tsx` loads the SDK for `x-preview` or `x-editor` requests. A plain visitor gets neither.
+- **Blocks.** Pages and posts are lists of blocks, so Visual Editor can reorder, add and remove them; each block's fields are tagged
+  (`tag(block, "html")`) and the list itself is tagged on a wrapper (`tag(page, "components")`, `tag(post, "blocks")`).
 - **Edit tags** (`data-cslp` attributes) mark which field each element shows. In **Visual Editor**, clicking an element
   opens its field; hovering shows an outline and a label (for example "Hero Banner : Banner Title").
 
@@ -46,11 +54,12 @@ Contentstack app ── entry form edits ──► draft stored under a "live pr
 
 | Piece | File | What it does |
 |---|---|---|
-| Preview stack | `lib/contentstack.ts` | `getStack(preview)`, `previewParams()`; preview host from `CONTENTSTACK_REGION` |
-| SDK init | `components/live-preview.tsx` | `ContentstackLivePreview.init({ ssr: true, mode: "builder", … })` once per page load |
-| Entry context | `components/edit-support.tsx` | `<meta name="contentstack:entry-uid">` and `<meta name="contentstack:content-type-uid">` |
-| Edit tags | `lib/contentstack.ts → tagEntry()` | `addEditableTags(entry, contentType, true, locale)` adds `entry.$.<field>` |
-| Embedding | `next.config.ts` | `Content-Security-Policy: frame-ancestors` for `*.contentstack.com` / `.io` |
+| Trusted headers | `proxy.ts`, `providers/cms/gates.ts` | verifies Live Preview's parameters, sets `x-preview`, `x-cs-*` and `x-editor` |
+| Preview stack | `providers/cms/contentstack/client.ts` | `getStack(preview)`, `previewParams()`; preview host from `CONTENTSTACK_REGION` |
+| SDK init | `providers/cms/contentstack/live-preview.tsx` | `ContentstackLivePreview.init({ ssr: true, mode: "builder", … })` once per page load |
+| Loading it | `components/edit-support.tsx`, `lib/request.ts` | renders the SDK for `x-preview` or `x-editor` requests (`isPreviewRequest()`, `inEditor()`) |
+| Edit tags | `client.ts → entries()`, `mapper.ts` | `addEditableTags(entry, contentType, true, locale)` adds `entry.$.<field>`; the mapper copies them into `$` of each block; `tag(entity, field)` in `core/edit.ts` |
+| Embedding | `proxy.ts`, `providers/cms/meta.ts` | `Content-Security-Policy: frame-ancestors` for `*.contentstack.com` / `.io` (plus localhost in development) |
 
 ### Init options used
 
@@ -67,28 +76,28 @@ ContentstackLivePreview.init({
 });
 ```
 
-### Why `<meta>` tags instead of `setPageContext`
+### Page context
 
-`setPageContext()` posts a message to the Visual Builder and waits for an acknowledgement. When there is no builder
-frame (for example in **Timeline mode**) the SDK logs *"Failed to send page context … The ACK was not received"*, which
-Next.js shows as an error overlay. The SDK documents `<meta>` tags as an equivalent source of the page context and they
-send no message, so they are used instead.
+The site does not call `setPageContext()`, which posts a message to the Visual Builder and waits for an acknowledgement. When there is no builder
+frame (for example in **Timeline mode**) the SDK logs *"Failed to send page context … The ACK was not received"*, which Next.js shows as an error
+overlay. The earlier version declared the entry with `<meta name="contentstack:entry-uid">` tags; the current code renders none (the editor's URL
+parameters name the entry), so verify entry resolution in Visual Editor when adding a page type.
 
 ### Edit tags
 
-Tags are added **only in preview** (and the SDK itself is loaded only in preview or local development,
-`EDIT_MODE`). Elements opt in by spreading the tag object, which is `{}` when there is none:
+Tags are added **only in preview** (and the SDK itself is loaded only for preview requests and requests framed by Contentstack's app). Elements
+opt in by spreading the tag object, which is `{}` when there is none:
 
 ```tsx
-<h1 {...(hero.$?.title ?? {})}>{hero.title}</h1>
+<h1 {...tag(hero, "title")}>{hero.title}</h1>
 ```
 
 Fields tagged today:
 
 | Page | Tagged fields |
 |---|---|
-| Home / hero banners | title, description, call to action, banner image, second photo (`page.image`), rich text, each block's title / copy / image (and the blocks list) |
-| Blog | post title, date, featured image, body, author name and bio; section titles on the listing; card titles and images |
+| Pages (home, FAQ, guides, blog) | the list of components (reorder, add, remove); hero title, description, call to action, image and second image; text, image and video blocks; each feature's title / copy / image; collection titles, link and search labels, and the `items` list |
+| Blog | post title, date, featured image, the list of content blocks and each block, author name and bio; card titles and images |
 | Guides | title, summary, hero image, each step's title / body / pro tip (and the steps list), each checklist item (and the checklist); card titles and summaries |
 | FAQ | question and answer |
 | Spotlights | title and tagline |
@@ -122,15 +131,17 @@ from the route (`/fr`), not from the query string.
 |---|---|
 | Preview shows published content, not edits | Preview token missing or wrong; `live_preview` param not reaching the page; base URL for that locale not set |
 | 404 in the preview pane | The route does not exist for that URL, or the entry's `url` differs from the page path |
-| `Encountered two children with the same key` | The preview API returned an entry twice; handled by `uniqueByUid` (add it to any new list fetcher) |
-| `Failed to send page context … ACK` | Calling `setPageContext` outside Visual Builder; use meta tags (already done) |
+| `Encountered two children with the same key` | The preview API returned an entry twice; `entries()` in `client.ts` removes duplicates by uid (read lists through it) |
+| Error 382 "tracker no longer exists" | A stale draft hash; `entries()` falls back to published content |
+| The pane is blank or not editable on its first load | The SDK was not on that page: check `proxy.ts` sets `x-editor` (iframe `Sec-Fetch-Dest` and a Contentstack `Referer`) |
+| `Failed to send page context … ACK` | Calling `setPageContext` outside Visual Builder; the site does not call it |
 | Clicking an element does nothing | The element has no edit tag, the field is not tagged, or an overlay covers it (`overlayPropagation` is on) |
-| "Refused to display … in a frame" | CSP / `X-Frame-Options`; the allowed ancestors are set in `next.config.ts` (restart the dev server after changing it) |
+| "Refused to display … in a frame" | CSP / `X-Frame-Options`; the allowed ancestors are set by `proxy.ts` (`FRAME_ANCESTORS` in `providers/cms/meta.ts`; restart the dev server after changing them) |
 | Edits are slow | In SSR mode every edit triggers a full server render; keep fetchers parallel (`Promise.all`) |
 
 ## Adding editing support to a new page or field
 
-1. Fetch through `entriesOf(...)` / a helper that calls `tagEntry(...)`.
-2. Spread `entry.$?.<field>` on the element that displays it (use the field UID; for repeated groups use the item's own `$`).
-3. Render `<EditSupport preview={preview} entry={{ uid, contentType }} />` in the page.
+1. Read through `entries(...)` in `client.ts` (it adds the edit tags in preview).
+2. In `mapper.ts`, copy the tags into the model with `t(entry, { field: "field_uid" })` (the map renames the model's field to the field uid).
+3. Spread `tag(entity, "field")` on the element that displays it; for repeated groups use the item's own `$`.
 4. Add the field to the table above.

@@ -22,7 +22,6 @@ Copy `.env.example` to `.env.local`. **All are server-side**; none use the `NEXT
 | `BIGCOMMERCE_STORE_HASH` | yes | store hash |
 | `BIGCOMMERCE_CHANNEL_ID` | yes | channel ID of the headless storefront channel |
 | `BIGCOMMERCE_STOREFRONT_TOKEN` | yes | channel-scoped Storefront API token (one allowed origin) |
-| `CONTENTSTACK_EDIT_MODE` | optional | `true` loads the editing SDK outside local development |
 
 `.env.local` is gitignored. Do not paste token values into chats, tickets or commit messages.
 
@@ -47,11 +46,11 @@ npm run build                          # production build
 
 | Task | How |
 |---|---|
-| Change copy, FAQs, guides, banners, nav | Contentstack, then **publish** to `preview` (both locales) |
+| Change copy, FAQs, guides, banners, nav, or the order of a page's components | Contentstack, then **publish** to `preview` (both locales) |
 | Refresh sample content | [seeding.md](seeding.md) |
 | Add a UI string | `lib/i18n.ts` (English and French) |
 | Rotate the BigCommerce token | create a new token for the origin, update the variable, redeploy; old ones expire by themselves |
-| Check live preview | open an entry in Contentstack → Live Preview, or Visual Experience |
+| Check live preview | open an entry in Contentstack → Live Preview, or Visual Experience (the proxy marks the editor's frame with `x-editor`, see [live-preview-and-visual-editor.md](live-preview-and-visual-editor.md)) |
 
 ### Renewing the BigCommerce Storefront token
 
@@ -103,7 +102,7 @@ Changing a variable needs a redeploy to take effect.
 2. Create a BigCommerce Storefront token whose allowed origin is the **production domain**; use it in production.
 3. In Contentstack: add the production base URLs for **both locales** in Live Preview settings
    (`https://your-domain` and `https://your-domain/fr`).
-4. The CSP `frame-ancestors` rule already allows Contentstack's editors.
+4. The CSP `frame-ancestors` rule (set per request by `proxy.ts`) already allows Contentstack's editors.
 5. Next.js on Vercel needs no extra config. `proxy.ts` runs on the Node.js runtime.
 
 ### Production readiness checklist
@@ -114,6 +113,8 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 - [x] All content is published to `production`; the live site reads it with its own delivery and preview tokens
       ([contentstack.md](contentstack.md#environments-and-tokens)). Confirm with the `X-Content-Environment` response header.
 - [x] Review gate between `preview` and `production`: staging site plus workflow and publishing rule ([workflow.md](workflow.md)).
+- [ ] **Deploy the block-model code** (pending: committed, not deployed) and verify production and staging (home, FAQ, guides, blog, a post, a guide, English and French, and an edit in Visual Editor).
+- [ ] **Run the prepared prune** of the earlier fixed-layout fields and the `blog_listing_page` / `hero_banner` types (`backup.py`, deploy, then `prune.py --run`; see [seeding.md](seeding.md#backup-and-prune)). Not run yet.
 - [ ] Editors: follow the routine in [workflow.md](workflow.md#the-editor-routine); turn on *Prevent self-approval* once there is a second approver.
 - [ ] Replace all fictional sample content (authors, article text, FAQ policies, promotions, contact details).
 - [ ] Add **publish webhooks** → Next.js revalidation (tags or paths), then cache Contentstack reads.
@@ -130,6 +131,7 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 | Empty product sections, `[bigcommerce] … failed` in the log | expired/wrong Storefront token, wrong channel host, origin mismatch | see "Renewing the token" |
 | `api_key is not valid` | wrong `CONTENTSTACK_REGION` | set the region of the stack |
 | Content changes not visible | not published to the environment, or the French entry is a stale copy | publish; re-run `seed_fr.py` |
+| A page is 404 but its entry exists | the page key is the entry's `url` (`/faq` is key `faq`), and the entry must be published in that locale | set the `url` on a `page` entry with `components`, and publish it |
 | French page shows English text | no `fr-fr` version (fallback) or a UI string is missing | translate the entry / add the string |
 | `Functions cannot be passed directly to Client Components` | a callback prop from a Server Component | pass data (strings), not functions |
 | Product page 404 | the BigCommerce path is not on the channel, or the product is not visible | check the product's channel assignment and visibility |
@@ -150,6 +152,7 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 - No buyer sign-in, per-company pricing, quotes or order history (B2B Edition is not yet integrated).
 - Product, category and custom-field text is translated only where BigCommerce has Store Translations (French, plus any other locale added the same way).
 - Contentstack reads are not cached by Next.js (each request reads the CDN).
+- The stack still holds the earlier fixed-layout fields and types next to the block model until the prepared prune is run; the free plan's 10 content types stay all in use until then.
 - The review gate covers content only, not code; editing an Approved entry does not reset its stage ([workflow.md](workflow.md#what-the-gate-does-not-cover)).
 - The Contentstack free plan allows 10 content types; all are in use.
-- Search on the blog is a simple in-memory text match over the 100 most recent posts.
+- Search on the blog is a simple in-memory text match over the posts listed (at most 100).

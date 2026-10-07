@@ -10,7 +10,7 @@
 | Locales | `en-us` (master) and `fr-fr` (fallback → `en-us`) |
 | Plan | Free: **10 content types maximum** (all used) |
 
-Host names are derived from `CONTENTSTACK_REGION` in `lib/contentstack.ts` (`us` has no prefix; others are `<region>-…`).
+Host names are derived from `CONTENTSTACK_REGION` in `providers/cms/contentstack/client.ts` (`us` has no prefix; others are `<region>-…`).
 Using the wrong region's host returns *"api_key is not valid"*.
 
 ![Environments in Contentstack](images/cs-environments.jpg)
@@ -36,7 +36,7 @@ A delivery token only sees its own environment: asking the Delivery API for `pro
 **Going live is gated.** Publish to `preview` and check the staging site, set the entry's workflow stage to **Approved**,
 then publish to `production`; Contentstack refuses the production publish for any entry that is not Approved. The full
 routine, the publishing rule and its limits are in [workflow.md](workflow.md). To publish everything at once:
-`python3 scripts/seed/publish_environment.py production --approve` (idempotent; `--approve` first moves entries to Approved).
+`python3 tools/contentstack/publish_environment.py production --approve` (idempotent; `--approve` first moves entries to Approved).
 
 **Creating tokens.** Delivery and preview tokens can only be created in the Contentstack app (Settings → Tokens →
 Delivery Tokens, with *Create Preview Token* on). A **management token cannot** create them (the API answers *"insufficient
@@ -58,7 +58,9 @@ Vercel, and redeploy.
 
 ## Content types
 
-Ten types, all in `scripts/seed/schemas.py` (the last five) or created by the starter kit (the first five).
+Ten types today, defined in `tools/contentstack/schemas.py` (the last five) or created by the starter kit (the first five). The block model adds fields,
+not types (`tools/contentstack/blocks.py`); the pending prune removes `blog_listing_page` and `hero_banner`, leaving **eight** (see
+[the block model](#the-block-model-and-what-the-prune-removes)).
 
 ![Content types in Contentstack](images/cs-content-types.jpg)
 *Content Models → Content Types: the ten types (nine multiple, plus the single `Site Navigation`). The free plan allows no more.*
@@ -67,11 +69,11 @@ Ten types, all in `scripts/seed/schemas.py` (the last five) or created by the st
 
 | UID | Purpose | Key fields |
 |---|---|---|
-| `page` | URL-addressed pages: home (`/`), FAQ (`/faq`), buying guides (`/guides`) | `title` (unique), `url`, `description`, `image`, `rich_text` (HTML RTE), `blocks` (modular, uses the `block` global field: title, copy, image, layout), **`hero`** (reference → `hero_banner`, added by us) |
-| `hero_banner` | Reusable page hero | `title`, `banner_image`, `banner_description`, `call_to_action` (link), `is_banner_image_full_width_`, alignment fields |
+| `page` | URL-addressed pages: home (`/`), FAQ (`/faq`), buying guides (`/guides`), blog (`/blog`), or any page an editor adds | `title` (unique), `url`, `description`, **`components`** (modular blocks, see below); earlier fields still present until the prune: `image`, `rich_text`, `blocks`, `hero` |
+| `hero_banner` | Reusable page hero (**superseded** by the `hero` block; removed by the prune) | `title`, `banner_image`, `banner_description`, `call_to_action` (link), `is_banner_image_full_width_`, alignment fields |
 | `author` | Article / guide author | `title` (name, unique), `picture` (required), `bio` |
-| `blog_landing_page` | An article (URL prefix `/blog/`) | `title`, `url`, `author` (ref), `date`, `featured_image` (required), `body` (JSON RTE), `related_post` (ref), `is_archived`, `seo` (global field: meta title/description, keywords, indexing) |
-| `blog_listing_page` | The blog index (`/blog`) | `title`, `url`, `search` (group), `page_components` (modular: `hero_banner`, `from_blog`, `widget`), `seo` |
+| `blog_landing_page` | An article (URL prefix `/blog/`) | `title`, `url`, `author` (ref), `date`, `featured_image` (required), **`content`** (modular blocks: text, image, video), **`read_time`** (minutes), `seo` (global field: meta title/description, keywords, indexing) |
+| `blog_listing_page` | The earlier blog index (**superseded**: `/blog` is now a `page` entry; removed by the prune) | `title`, `url`, `search` (group), `page_components` (modular: `hero_banner`, `from_blog`, `widget`), `seo` |
 
 ### Types added for this storefront
 
@@ -89,14 +91,35 @@ Select (enum) fields store **fixed English values**; the storefront maps them to
 ![The Buying Guide content type](images/cs-content-type-buying-guide.jpg)
 *The Buying Guide type in the content type builder: URL, summary, hero image, audience, read time and the repeatable **Steps** group (step title, step body, pro tip).*
 
+### The block model and what the prune removes
+
+A page is an ordered list of blocks in `page.components`; a post is an ordered list in `blog_landing_page.content`. Editors reorder, add and remove
+them in the entry form or in Visual Editor. A block is addressed by its key (`{"hero": {...}}`).
+
+| `page.components` block | Fields |
+|---|---|
+| `hero` | `title`, `description`, `image`, `second_image` (home variant), `cta` (link), `variant` (`default` / `home`) |
+| `feature` | `title`, `copy` (JSON RTE), `image`, `layout` (`image_left` / `image_right`) |
+| `text` | `text` (JSON RTE) |
+| `image` | `image`, `alt` |
+| `video` | `video_title`, `src` |
+| `collection` | `kind` (`categories`, `spotlights`, `guides`, `posts`, `postListing`, `guideListing`, `faqs`), `title`, `link_label`, `search_placeholder`, `search_button_label`, `items` (references → `faq`, `buying_guide`, `product_spotlight`, `blog_landing_page`) |
+
+`blog_landing_page.content` accepts `text`, `image` and `video`. The seeded pages are `home` (`/`), `faq`, `guides` and `blog`.
+
+**Pending prune (not run).** The earlier fields are still in the stack next to the blocks, and the site no longer reads them:
+`page.image`, `rich_text`, `blocks`, `hero`; `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`; and the
+`blog_listing_page` and `hero_banner` content types with their entries. `tools/contentstack/prune.py` (a dry run unless `--run`, after `backup.py`) removes
+them; see [seeding.md](seeding.md#backup-and-prune). Until then the counts below include them.
+
 ### Rules that bit us (and are enforced by the API)
 
 - `title` is **unique** per content type (and per locale). French titles that equal the English one are fine.
 - UIDs ending in `_ids` such as `recommended_product_ids` are **reserved**; use a different name.
-- A JSON-RTE `body` is stored as a document tree; `scripts/seed/seed.py → rte()` builds one from paragraphs, headings and lists.
+- A JSON-RTE field (`body`, a `text` block, FAQ answers) is stored as a document tree; `tools/contentstack/seed.py → rte()` builds one from paragraphs, headings and lists.
 - `file` fields (`picture`, `featured_image`, `hero_image`, `banner_image`) hold an **asset UID** when writing.
 - A `widget.type` value must match the enum (`Blog Archive`, `Related Posts`).
-- A modular block is addressed by its key: `{"from_blog": {…}}`.
+- A modular block is addressed by its key: `{"collection": {…}}`. The same RTE node `uid` cannot appear twice in one entry (`blocks.py` regenerates them when it copies a `body` into a `text` block).
 
 ## Entries (current sample content)
 
@@ -104,9 +127,9 @@ Select (enum) fields store **fixed English values**; the storefront maps them to
 |---|---|---|
 | author | 6 | 6 |
 | blog_landing_page | 36 | 36 |
-| blog_listing_page | 1 | 1 |
-| hero_banner | 4 (home, FAQ, guides, blog) | 4 |
-| page | 3 (`/`, `/faq`, `/guides`) | 3 |
+| blog_listing_page | 1 (removed by the prune) | 1 |
+| hero_banner | 4 (home, FAQ, guides, blog; removed by the prune) | 4 |
+| page | 4 (`/`, `/faq`, `/guides`, `/blog`) | 4 |
 | faq | 15 | 15 |
 | buying_guide | 6 | 6 |
 | product_spotlight | 6 | 6 |

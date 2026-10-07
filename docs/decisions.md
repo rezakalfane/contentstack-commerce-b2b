@@ -76,18 +76,18 @@ redirect through `/api/switch-locale`; filter values are translated, so attribut
 ## Editing
 
 ### D12. SSR live preview, not client-side rendering
-**Decision.** `ssr: true`: the preview pane re-requests HTML after each edit.
+**Decision.** `ssr: true`: the preview pane re-requests HTML after each edit; the server reads the draft with the hash `proxy.ts` passes on in `x-cs-*` headers.
 **Why.** Our pages are Server Components. CSR mode would need client-side data fetching and a parallel rendering path for
 every page.
 **Trade-off.** Each edit is a server render (slower than CSR), but there is one code path.
 
-### D13. `<meta>` page context instead of `setPageContext`
-**Decision.** Declare the entry with `contentstack:entry-uid` / `contentstack:content-type-uid` meta tags.
+### D13. No `setPageContext` call
+**Decision.** Do not call `setPageContext`. (The earlier version declared the entry with `contentstack:entry-uid` / `contentstack:content-type-uid` meta tags; the block-model code renders none.)
 **Why.** `setPageContext` posts a message that logs an error when there is no Visual Builder to acknowledge it (Timeline
 mode). Meta tags are the SDK's documented alternative.
 
 ### D14. Edit tags only in preview
-**Decision.** `tagEntry()` is a no-op without preview parameters; the SDK loads only in preview or development.
+**Decision.** `proxy.ts` sets the trusted `x-preview` header only when Live Preview's parameters are present (and removes any such header sent by a client); the mapper adds edit tags only for it (`$` is empty otherwise), and the SDK loads only for preview requests and requests framed by Contentstack's app (`x-editor`).
 **Why.** Production HTML should carry no editing markup.
 
 ## Catalog
@@ -172,9 +172,34 @@ commit on every push.
 **Why.** Contentstack's Live Preview iframe and reviewers need to open the URL without a Vercel login (Vercel adds `noindex`).
 Vercel skips a branch whose tip it already built, so the empty commit forces a fresh deployment.
 
+### D29. Pages and posts are ordered lists of blocks
+**Decision.** A `page` entry holds `components`, a modular blocks field (`hero`, `feature`, `text`, `image`, `video`, `collection`); a post
+(`blog_landing_page`) holds `content` blocks (text, image, video) and `read_time`. One generic `collection` block, with a `kind` (`categories`,
+`spotlights`, `guides`, `posts`, `postListing`, `guideListing`, `faqs`) and `items` references, covers every list-like section. The blog index is a
+`page` entry (url `/blog`) instead of `blog_listing_page`, and `getPage(key)` reads the entry whose `url` is `/<key>`; `app/[locale]/[...slug]` renders any
+such page.
+**Why.** Editors can reorder, add and remove components without a developer, as in the Amplience version, and one model serves every CMS of the
+switchable project. The blocks live in the entry, so Visual Editor edits one in place.
+**Consequence.** The catalog moved to a static `products` route, with translated roots rewritten by `proxy.ts` (`x-catalog-root`), to leave the
+catch-all route free. The 10-type cap is relieved (the prune removes two types).
+
+### D30. Single-CMS build on the shared model
+**Decision.** The UI, `core/`, the proxy and the provider come from `content-commerce-b2b` reduced to Contentstack: `lib/content.ts` is a facade over
+`providers/cms/contentstack/{client,mapper,index,live-preview,edit-support}`. `lib/blog.ts`, `lib/site.ts`, `lib/cslp.ts` and `lib/rte.ts`
+are gone. The seeding scripts moved from `scripts/seed` to `tools/contentstack`.
+**Why.** Same UI and model on every CMS, with one place (the provider) that knows Contentstack.
+
+### D31. Earlier fixed-layout model kept until a prepared prune is approved
+**Decision.** The block fields were added next to the earlier model (`blocks.py` is additive) and the site was switched to read only the new one. The old
+fields (`page.image`, `rich_text`, `blocks`, `hero`; `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`) and the
+`blog_listing_page` and `hero_banner` types are still in the stack.
+**Why.** Nothing is removed while the live site can still depend on it. `tools/contentstack/prune.py` removes them (a dry run unless `--run`, after `backup.py`);
+it is prepared and **has not been run**, and the block-model code is **not deployed yet**.
+**Later.** Deploy, verify, run the prune when approved, then verify production and staging.
+
 ## Open questions
 
 - Will buyers **sign in** (B2B Edition companies, price lists, quotes)? Today "your negotiated prices" is aspirational copy.
 - Should attribute filters survive a language switch (their values are translated, so they are dropped today)?
-- Should category tiles and the home category mosaic move into Contentstack (needs a type slot)?
+- Should category tiles and the home category mosaic move into Contentstack? (They are now a `collection` block of kind `categories`, but the tiles are still static files.)
 - Publish **webhooks and caching** for Contentstack reads at production traffic.

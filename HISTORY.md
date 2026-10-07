@@ -235,6 +235,21 @@ Documentation: the workflow got its own page, [docs/workflow.md](docs/workflow.m
 scope and stages, publishing rule scope and conditions, Vercel overview and staging deployment). `contentstack`, `operations`,
 `seeding`, `decisions` (D27, D28; the open question is closed) and the docs index were updated, with limits stated plainly.
 
+## 7 October (block model)
+
+### Block-composed pages for every CMS
+**Prompt:** (while building the switchable project `content-commerce-b2b`) Re-ordering components works great for Pages and Blog in Amplience; can we have the same for the other CMSs?
+
+**Result:** Pages and posts become ordered lists of blocks in every CMS, so editors can reorder, add and remove components without a developer. In Contentstack the `page` content type gets a `components` modular blocks field (`hero`, `feature`, `text`, `image`, `video` and one generic `collection` whose `kind` is `categories`, `spotlights`, `guides`, `posts`, `postListing`, `guideListing` or `faqs`, with `items` references), and the post type `blog_landing_page` gets `content` blocks (text, image, video) and `read_time`. The hero gains `second_image` and `variant`. The blog index becomes a `page` entry (url `/blog`) instead of `blog_listing_page`. They were added **next to** the earlier fixed-layout fields (`tools/contentstack/blocks.py`, additive, both locales).
+
+### Port into this repository (single-CMS build)
+**Prompt:** (Port the block model into this repository, single-CMS, the same way as the Storyblok storefront.)
+
+**Result:** The UI, the content model (`core/content.ts`), the proxy and the Contentstack provider come from `content-commerce-b2b`, reduced to Contentstack only: no switcher, no other CMS, no time travel. The data layer is now `providers/cms/contentstack/{client,mapper,index,live-preview,edit-support}` behind the facade `lib/content.ts`; `lib/blog.ts`, `lib/site.ts`, `lib/cslp.ts` and `lib/rte.ts` are gone. The pages are the catch-all `app/[locale]/[...slug]` plus the blog post and guide routes, rendered by `components/page-blocks.tsx`, `page-content.tsx`, `post-view.tsx` and `guide-view.tsx`; the catalog is a static `app/[locale]/products` route with the translated roots rewritten by `proxy.ts` (`x-catalog-root`). `proxy.ts` verifies Live Preview's parameters into trusted `x-preview` and `x-cs-*` headers (removing any a client sent), marks requests framed by Contentstack's app with `x-editor` so the SDK loads on the pane's first request (before a draft hash exists), and sets `frame-ancestors` for Contentstack. `CONTENTSTACK_EDIT_MODE` no longer exists. The seeding scripts moved from `scripts/seed` to `tools/contentstack` (`seed.py`, `seed_extra.py`, `seed_fr.py`, then `blocks.py`; new: `backup.py`, `prune.py`).
+
+### Backup and prune prepared, not run; not deployed
+**Result:** The earlier fields (`page.image`, `rich_text`, `blocks`, `hero`; `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`) and the `blog_listing_page` and `hero_banner` types are still in the stack; the site no longer reads them. `tools/contentstack/backup.py` (content types and entries to `.backups/`) and `prune.py` (a dry run by default; `--run` removes them and takes the stack from ten content types to eight) are prepared. **The prune has not been run and awaits approval, and the new code has not been deployed yet.** The Contentstack screenshots in `docs/images/cs-*` predate the block model (the earlier Home and the ten-type list); they are kept as they are. The documentation was brought up to date in the same pass.
+
 ---
 
 ## Things that did not work the first time (and why it matters)

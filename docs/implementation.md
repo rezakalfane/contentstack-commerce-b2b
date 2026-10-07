@@ -4,23 +4,27 @@ How each feature works and where to find it. Paths are relative to `storefront/`
 
 ## 1. Data layer
 
-### Contentstack: `lib/contentstack.ts`, `lib/site.ts`, `lib/blog.ts`
+### Contentstack: `lib/content.ts` and `providers/cms/contentstack/`
 
-- **`getStack(preview?)`** returns a shared delivery stack, or, when the URL carries Live Preview parameters, a *fresh*
-  stack configured with the preview token and the region's preview host, with `livePreviewQuery(...)` applied. A fresh
-  instance per preview request is required because `livePreviewQuery` mutates the stack.
-- **`entriesOf(contentType, locale, preview)`** is the single entry point for reading: it selects the Contentstack locale
-  (`en-us` / `fr-fr`), enables `includeFallback()` (an untranslated entry falls back to English) and, in preview, calls
-  `includeReferenceContentTypeUID()` so nested references get correct edit tags.
-- **`tagEntry(entry, contentType, locale, preview)`** adds `entry.$` edit tags (only in preview).
-- **`uniqueByUid`** removes duplicates (the preview API can return an entry twice).
-- Fetchers are typed and locale-first: `getNavigation(locale)`, `getAnnouncement(locale)`, `getFaqs(locale)`,
-  `getGuides(locale)`, `getGuide(locale, slug)`, `getSpotlights(locale)`, `getPage(locale, url)`, `getPosts(locale)`,
-  `getPost(locale, slug)`, `getListingPage(locale)`.
-- Detail entries are looked up by their **`url` field** (`/blog/<slug>`, `/guides/<slug>`). Slugs are identical in every
-  locale (see [decisions.md](decisions.md)).
-- JSON Rich Text (post bodies, FAQ answers) is converted to HTML by `lib/rte.ts` using `jsonToHTML` from
-  `@contentstack/utils`.
+`lib/content.ts` is the facade the pages call (`getPage`, `getNavigation`, `getAnnouncement`, `getPosts`, `getPost`, `getGuides`, `getGuide`,
+`getSpotlights`, all locale-first); it reads through the Contentstack provider and returns the content model of `core/content.ts` (`Page`, `Block`,
+`Post`, `Guide`...), so components never see an entry. The provider has four parts:
+
+- **`client.ts`**: `getStack(preview?)` returns a shared delivery stack, or, for a Live Preview request, a *fresh* stack configured with the preview
+  token and the region's preview host, with `livePreviewQuery(...)` applied (required because it mutates the stack). `previewParams()` reads the
+  draft hash and the entry being edited from the trusted `x-cs-*` headers that `proxy.ts` sets. `entries(contentType, locale, preview, opts)` is the
+  single entry point for reading: it selects the Contentstack locale (`en-us` / `fr-fr`), enables `includeFallback()` (an untranslated entry falls back
+  to English), resolves the references asked for, removes duplicate entries (the preview API can return one twice), and in preview adds the edit tags
+  (`addEditableTags`) and calls `includeReferenceContentTypeUID()` so nested references tag correctly. A stale hash (error 382) falls back to published
+  content. Helpers: `asset`, `text`, `strings`, `list`, `rteToHtml` (JSON rich text to HTML with `jsonToHTML` from `@contentstack/utils`), `cslp`
+  (edit tags of an entry).
+- **`mapper.ts`**: entries to the model. A `page` entry becomes a `Page` whose `components` are mapped block by block; a `collection` block's `items` are
+  joined by uid to the entries of its `kind` (spotlights, guides, posts, FAQs), each list fetched once per request and locale.
+- **`index.ts`**: the provider object that adds the preview parameters to each mapper call.
+- **`live-preview.tsx`** and **`edit-support.tsx`**: the SDK initialisation, see [live-preview-and-visual-editor.md](live-preview-and-visual-editor.md).
+
+Detail entries are looked up by their **`url` field** (`/blog/<slug>`, `/guides/<slug>`), pages by `/<key>` (`/` for `home`). Slugs are identical in every
+locale (see [decisions.md](decisions.md)). `lib/blog.ts`, `lib/site.ts`, `lib/cslp.ts` and `lib/rte.ts` of the earlier version no longer exist.
 
 ### BigCommerce: `lib/bigcommerce.ts`
 
@@ -30,24 +34,26 @@ A thin GraphQL client (`gql()`), the query fragments, and typed functions. Detai
 
 | Route | File | Data |
 |---|---|---|
-| `/` | `app/[locale]/page.tsx` | `page` (url `/`) + hero banner, spotlights, guides, BigCommerce cards |
-| `/blog` | `blog/page.tsx` | `blog_listing_page`, `blog_landing_page[]` |
-| `/blog/[slug]` | `blog/[slug]/page.tsx` | one `blog_landing_page` + author + related posts |
-| `/guides`, `/guides/[slug]` | `guides/…` | `buying_guide`, related FAQs, live BigCommerce products |
-| `/faq` | `faq/page.tsx` | `page` (url `/faq`) + `faq[]` grouped by topic |
+| `/` | `app/[locale]/page.tsx` | the Page with key `home`: its blocks, with BigCommerce cards where a block needs them |
+| `/faq`, `/guides`, `/blog`, any page an editor adds | `[...slug]/page.tsx` | the `page` entry whose `url` is `/<key>`, rendered block by block (404 if there is none) |
+| `/blog/[slug]` | `blog/[slug]/page.tsx` | one `blog_landing_page` (`PostView`: content blocks, author sidebar, related posts by the same author) |
+| `/guides/[slug]` | `guides/[slug]/page.tsx` | one `buying_guide` (`GuideView`), related FAQs, live BigCommerce products |
 | `/products` | `products/page.tsx` | BigCommerce faceted search over the whole catalog |
 | `/products/<category>…` | `products/[...slug]/page.tsx` | category **or** product (see below) |
 | `/cart` | `cart/page.tsx` | BigCommerce cart |
 
-All pages accept `?live_preview=…` (preview) and add `<EditSupport>`, which loads the editing SDK and declares the entry
-via `<meta>` tags.
+`components/page-content.tsx` holds `PageContent`, `PostContent` and `GuideContent`; `components/page-blocks.tsx` has one view per block type.
+All pages accept `?live_preview=…` (preview); the layout renders `<EditSupport>`, which loads the editing SDK for preview requests and for requests
+framed by Contentstack's app.
 
 ### The catalog routes
 
 BigCommerce translates catalog URLs, so the catalog lives at `/products/...` in English and `/fr/produits/...` in French (the root category
 "Products" is "Produits" in French, and every category and product slug below it is translated too). The routes are
-`app/[locale]/[root]/page.tsx` (listing) and `app/[locale]/[root]/[...slug]/page.tsx` (category or product), where `[root]` is the language's
-catalog root (`CATALOG_ROOT` in `lib/i18n.ts`). Static routes (`/blog`, `/guides`, `/faq`, `/cart`) take precedence over `[root]`.
+`app/[locale]/products/page.tsx` (listing) and `app/[locale]/products/[...slug]/page.tsx` (category or product). The route is static: `proxy.ts`
+rewrites a language's translated root onto it (`/fr/produits/...` to `/fr/products/...`) and passes the requested root in the `x-catalog-root` header
+(`requestedCatalogRoot()` in `lib/catalog-route.ts`), compared with `CATALOG_ROOT` in `lib/i18n.ts`. Keeping the catalog off a dynamic `[root]` segment
+leaves `[...slug]` free for the content pages.
 
 - The page rebuilds the BigCommerce path from `root` and the slug (`/produits/batteries-automobiles/...`) and resolves it **in the page's
   language**: a path only resolves in its own language. **One or two segments are categories, three or more are products.** If the guess is
@@ -64,23 +70,22 @@ catalog root (`CATALOG_ROOT` in `lib/i18n.ts`). Static routes (`/blog`, `/guides
 
 ## 3. Home page
 
-`page` entry with url `/` drives it:
+The `page` entry with url `/` drives it, as a list of `components` blocks in the order the editor chose (the seeded order is below):
 
-- **Hero** (`components/hero.tsx`, `variant="home"`): headline, description and button come from the referenced
-  `hero_banner`; its `banner_image` and the page's own `image` are the two staggered photos (both editable inline). A
-  secondary "All products" button is added in code.
-- **Intro** from the page's `rich_text` (HTML rich text).
-- **Shop by category** (`components/category-tiles.tsx`): the five top-level catalog categories as a photo mosaic. The
+- **Hero block** (`components/hero.tsx`, `variant: home`): headline, description, button, `image` and `second_image` (the two staggered photos, both
+  editable inline). A secondary "All products" button is added in code.
+- **Text block**: the intro.
+- **Collection block, kind `categories`** (`components/category-tiles.tsx`): the five top-level catalog categories as a photo mosaic. The
   photos are static files in `public/images/categories/`; labels are localized (`categoryLabel`).
-- **Value blocks**: the page's modular `blocks` field (title, copy, image, layout `image_left` / `image_right`).
-- **Trade favourites**: `product_spotlight` entries with `is_featured`, enriched with live BigCommerce price, photo and link.
-- **From the buying guides**: the first three guides.
+- **Feature blocks** (title, copy, image, layout `image_left` / `image_right`); consecutive ones share one band.
+- **Collection block, kind `spotlights`** (trade favourites): the referenced `product_spotlight` entries, enriched with live BigCommerce price, photo and link.
+- **Collection block, kind `guides`**: the referenced guides (the first three as seeded).
 
 ![Trade favourites](images/home-spotlights.jpg)
 *Trade favourites: editorial content from Contentstack with live price, photo and link from BigCommerce.*
 
 ![A value block](images/home-blocks.jpg)
-*A value block from the page's modular `blocks` field (title, copy, image, layout).*
+*A value block (a feature block: title, copy, image, layout).*
 
 ![From the buying guides](images/home-guides.jpg)
 *The guides strip: the first three guides, with photo, audience and read time.*
@@ -189,11 +194,12 @@ faceted search with `categoryEntityId`, which includes all descendants, instead 
 
 ## 8. Content pages
 
-- **Blog**: listing with hero, search (client-side text match over title and description), featured and all posts; post
-  page with main column + author sidebar, related posts. Dates and labels follow the locale.
-- **Buying guides**: guide cards; guide page with numbered steps (a true sequence), pro tips, a checklist, related FAQs and
+- **Blog**: the `/blog` page is a `page` entry: a hero, a `posts` collection (latest articles) and a `postListing` collection (search, a
+  text match over title and description, and all posts). A post page shows its `content` blocks (text, image, video), `read_time`, a main column
+  with an author sidebar and related posts. Dates and labels follow the locale.
+- **Buying guides**: the `/guides` page is a hero plus a `guideListing` collection (guide cards); guide page with numbered steps (a true sequence), pro tips, a checklist, related FAQs and
   **recommended products** that link to product pages with live price.
-- **FAQ**: grouped by `topic` (the select value is English; `topicLabel()` shows the French label), native
+- **FAQ**: the `/faq` page is a hero plus a `faqs` collection, grouped by `topic` (the select value is English; `topicLabel()` shows the French label), native
   `<details>` accordions.
 
 ![A buying guide](images/guide.jpg)
@@ -207,8 +213,9 @@ faceted search with `categoryEntityId`, which includes all descendants, instead 
 
 ## 9. Editing support
 
-`components/edit-support.tsx` renders the editing SDK and `<meta>` tags; `data-cslp` attributes are spread from
-`entry.$.<field>` on key elements. See [live-preview-and-visual-editor.md](live-preview-and-visual-editor.md).
+`components/edit-support.tsx` loads the editing SDK (`providers/cms/contentstack/live-preview.tsx`) for preview requests and for requests the proxy
+marked `x-editor`; `data-cslp` attributes are spread with `tag(entity, field)` (`core/edit.ts`) on key elements, and the component list of a page
+is wrapped (`tag(page, "components")`) so blocks can be reordered. See [live-preview-and-visual-editor.md](live-preview-and-visual-editor.md).
 
 ## 10. Internationalization
 
@@ -223,4 +230,6 @@ Routing in `proxy.ts`, strings and helpers in `lib/i18n.ts`. See [i18n.md](i18n.
 | Add a filterable attribute | `FACET_NAMES` in `lib/bigcommerce.ts` (+ French label in `SPEC_NAMES_FR`) |
 | Change the mega menu | `megaColumns()` in `components/site-chrome.tsx`, `components/mega-menu.tsx` |
 | Change colours, type, spacing | tokens in `app/globals.css` |
-| Add a page type | new route under `app/[locale]/`, a fetcher in `lib/`, edit tags, a seed |
+| Add a page | create a `page` entry (url `/<key>`) with `components` in Contentstack: `[...slug]` renders it, no code |
+| Add a block type | a field in `page.components` (`tools/contentstack/blocks.py`), the type in `core/content.ts`, the mapper (`block()`), a case in `components/page-blocks.tsx` |
+| Add a content route | new route under `app/[locale]/`, a read in the provider (`mapper.ts`, `index.ts`, `core/content.ts`), edit tags, a seed |
