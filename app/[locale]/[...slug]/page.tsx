@@ -5,7 +5,7 @@ import { getPage } from "@/lib/content";
 import { alternatesFor, isLocale } from "@/lib/i18n";
 
 /**
- * Any Page an editor creates in Amplience is served here: the URL path is the Page's delivery key
+ * Any Page an editor creates in Contentstack is served here: the URL path is the Page's delivery key
  * (`/faq` -> `faq`, `/about/team` -> `about/team`). Routes with their own file (products, cart, blog posts,
  * guides) take precedence.
  */

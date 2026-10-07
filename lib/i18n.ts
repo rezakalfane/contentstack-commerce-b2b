@@ -1,4 +1,4 @@
-/** Locale configuration, URL helpers and UI strings. Content itself lives in Amplience. */
+/** Locale configuration, URL helpers and UI strings. Content itself lives in Contentstack. */
 
 export const LOCALES = ["en", "fr"] as const;
 export type Locale = (typeof LOCALES)[number];
