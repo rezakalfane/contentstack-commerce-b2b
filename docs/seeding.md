@@ -27,7 +27,7 @@ python3 tools/contentstack/blocks.py       # 5. the block model, added on top (a
 Steps 1 to 4 still create the earlier fixed-layout content (the `hero_banner`, `blog_listing_page` and `page` fields the block model replaced);
 `blocks.py` then adds `page.components` and `blog_landing_page.content` + `read_time` and fills them (the pages `home`, `faq`, `guides` and a new `blog`
 page, each with its blocks, and for every post a text block copied from its `body`), in English and French, publishing what it changes. It is idempotent
-and leaves the earlier fields filled, so the old site keeps working until the prune is run.
+and leaves the earlier fields filled, so the old site kept working until the prune (run on 7 October 2026).
 
 `seed_fr.py` accepts `--only author,hero_banner,blog_landing_page,blog_listing_page,faq,buying_guide,product_spotlight,announcement_bar,site_navigation,page`
 to localize a subset.
@@ -123,9 +123,9 @@ To change the seeded content, edit `HOME`, `HEROES`, `HOME_BLOCK_PHOTOS` in `see
 
 ### Backup and prune
 
-The block model was added **next to** the earlier fixed-layout model, and the site now reads only the new one. The earlier model is still in the stack:
+The block model was added **next to** the earlier fixed-layout model, and the site now reads only the new one. The earlier model was in the stack until the prune:
 `page.image`, `rich_text`, `blocks`, `hero`; `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`; and the `blog_listing_page`
-and `hero_banner` types with their entries. The order for removing it:
+and `hero_banner` types with their entries. The order for removing it (followed on 7 October 2026):
 
 1. `python3 tools/contentstack/backup.py`: saves content types and entries (both locales) to `.backups/`.
 2. Deploy the storefront that reads `components` / `content`, and check production and staging.

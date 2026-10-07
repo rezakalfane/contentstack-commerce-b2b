@@ -181,7 +181,7 @@ such page.
 **Why.** Editors can reorder, add and remove components without a developer, as in the Amplience version, and one model serves every CMS of the
 switchable project. The blocks live in the entry, so Visual Editor edits one in place.
 **Consequence.** The catalog moved to a static `products` route, with translated roots rewritten by `proxy.ts` (`x-catalog-root`), to leave the
-catch-all route free. The 10-type cap is relieved (the prune removes two types).
+catch-all route free. The 10-type cap is relieved (the prune removed two types).
 
 ### D30. Single-CMS build on the shared model
 **Decision.** The UI, `core/`, the proxy and the provider come from `content-commerce-b2b` reduced to Contentstack: `lib/content.ts` is a facade over
@@ -189,10 +189,10 @@ catch-all route free. The 10-type cap is relieved (the prune removes two types).
 are gone. The seeding scripts moved from `scripts/seed` to `tools/contentstack`.
 **Why.** Same UI and model on every CMS, with one place (the provider) that knows Contentstack.
 
-### D31. Earlier fixed-layout model kept until a prepared prune is approved
+### D31. Earlier fixed-layout model kept until a prepared prune, then pruned (7 October 2026)
 **Decision.** The block fields were added next to the earlier model (`blocks.py` is additive) and the site was switched to read only the new one. The old
 fields (`page.image`, `rich_text`, `blocks`, `hero`; `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`) and the
-`blog_listing_page` and `hero_banner` types are still in the stack.
+`blog_listing_page` and `hero_banner` types stayed in the stack until the prune.
 **Why.** Nothing is removed while the live site can still depend on it. `tools/contentstack/prune.py` removes them (a dry run unless `--run`, after `backup.py`);
 it was run on 7 October 2026 after a backup, once the block-model code was deployed and its content published to `preview` and `production`.
 **Result.** Production and staging were verified after the prune (home, FAQ, guides, blog, English and French).

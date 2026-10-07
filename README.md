@@ -84,7 +84,7 @@ python3 tools/contentstack/seed_extra.py   # FAQs, guides, spotlights, nav, bann
 python3 tools/contentstack/seed_fr.py      # French versions of everything
 python3 tools/contentstack/blocks.py       # adds the block model on top (page.components, post content), both locales
 python3 tools/contentstack/backup.py       # save content types and entries to .backups/ before a destructive change
-python3 tools/contentstack/prune.py        # dry run: lists what the block model replaced (--run removes it; not run yet)
+python3 tools/contentstack/prune.py        # dry run: lists what the block model replaced (--run removes it; already run on 7 October 2026)
 ```
 
 ## Project layout
@@ -133,7 +133,7 @@ Start with **[docs/README.md](docs/README.md)**. Highlights:
 - [BigCommerce](docs/bigcommerce.md): channel, token, queries, listing, cart
 - [Internationalization](docs/i18n.md): locales, URLs, translation workflow
 - [Editorial workflow](docs/workflow.md): staging site, approval stages, production publishing rule
-- [Seeding](docs/seeding.md): sample content scripts, the block model, backup and the pending prune
+- [Seeding](docs/seeding.md): sample content scripts, the block model, backup and the prune
 - [Design system](docs/design-system.md): tokens, type, components
 - [Operations](docs/operations.md): environment variables, deployment, troubleshooting
 - [Decisions](docs/decisions.md): why things are the way they are

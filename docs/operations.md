@@ -152,7 +152,7 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 - No buyer sign-in, per-company pricing, quotes or order history (B2B Edition is not yet integrated).
 - Product, category and custom-field text is translated only where BigCommerce has Store Translations (French, plus any other locale added the same way).
 - Contentstack reads are not cached by Next.js (each request reads the CDN).
-- The stack still holds the earlier fixed-layout fields and types next to the block model until the prepared prune is run; the free plan's 10 content types stay all in use until then.
+- The earlier fixed-layout fields and types were pruned on 7 October 2026 (backup in `.backups/`, not committed); eight of the free plan's 10 content types are in use.
 - The review gate covers content only, not code; editing an Approved entry does not reset its stage ([workflow.md](workflow.md#what-the-gate-does-not-cover)).
 - The Contentstack free plan allows 10 content types; all are in use.
 - Search on the blog is a simple in-memory text match over the posts listed (at most 100).

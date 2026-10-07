@@ -108,8 +108,7 @@ product_spotlight ··bc_product_id·· BigCommerce product    buying_guide ··
 announcement_bar    site_navigation (singleton)
 ```
 
-References (`──►`) are Contentstack references; `(blocks)` live inside the entry, in order. Until the prune is run the stack also still holds
-the earlier fixed-layout fields and the `blog_listing_page` and `hero_banner` types, which the site no longer reads
+References (`──►`) are Contentstack references; `(blocks)` live inside the entry, in order. The earlier fixed-layout fields and the `blog_listing_page` and `hero_banner` types were removed by the prune of 7 October 2026
 ([seeding.md](seeding.md#backup-and-prune)). Dotted links (`··`) are plain IDs resolved at request time against
 BigCommerce, so a deleted or renamed product never breaks a content entry.
 
