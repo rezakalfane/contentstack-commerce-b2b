@@ -1,22 +1,10 @@
-import { API_KEY, APP_HOST, EDIT_MODE, ENVIRONMENT, type PreviewParams } from "@/lib/contentstack";
-import { LivePreview } from "./live-preview";
+import { EditSupport as Contentstack } from "@/providers/cms/contentstack/edit-support";
+import { inEditor, isPreviewRequest } from "@/lib/request";
 
 /**
- * Loads Live Preview / Visual Editor tooling in preview, and in local development so editors can start editing.
- * The entry a page renders is declared with the SDK's documented <meta> tags (React hoists them into <head>),
- * so "Start Editing" opens the right entry even for custom-URL pages.
+ * Loads Contentstack's Live Preview SDK for verified preview requests (x-preview) and for any request framed by Contentstack's app:
+ * the pane's first request carries no draft hash yet, but the SDK must already be on that page to take over afterwards.
  */
-export function EditSupport({ preview, entry }: { preview?: PreviewParams; entry?: { uid: string; contentType: string } }) {
-  if (!preview && !EDIT_MODE) return null;
-  return (
-    <>
-      {entry && (
-        <>
-          <meta name="contentstack:entry-uid" content={entry.uid} />
-          <meta name="contentstack:content-type-uid" content={entry.contentType} />
-        </>
-      )}
-      <LivePreview apiKey={API_KEY} environment={ENVIRONMENT} appHost={APP_HOST} />
-    </>
-  );
+export async function EditSupport() {
+  return (await isPreviewRequest()) || (await inEditor()) ? <Contentstack /> : null;
 }

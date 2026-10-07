@@ -97,7 +97,7 @@ def main():
                 ])
                 e["seo"] = {
                     "meta_title": title,
-                    "meta_description": textwrap.shorten(intro, 155, placeholder="…"),
+                    "meta_description": textwrap.shorten(intro, 180, placeholder="…"),
                     "keywords": "commerce b2b, " + THEME_KEYWORDS_FR[ai],
                     "enable_search_indexing": True,
                 }

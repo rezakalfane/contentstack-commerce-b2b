@@ -10,6 +10,7 @@ import mimetypes
 import os
 import re
 import sys
+import textwrap
 import time
 import urllib.error
 import urllib.parse
@@ -282,7 +283,7 @@ def main():
             "featured_image": asset,
             "body": body,
             "is_archived": False,
-            "seo": {"meta_title": title, "meta_description": intro[:155], "keywords": "b2b commerce, " + a["theme"].lower(), "enable_search_indexing": True},
+            "seo": {"meta_title": title, "meta_description": textwrap.shorten(intro, 180, placeholder="…"), "keywords": "b2b commerce, " + a["theme"].lower(), "enable_search_indexing": True},
         }
         uid, created = upsert_entry("blog_landing_page", title, entry)
         post_uid.append(uid)
