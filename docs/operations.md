@@ -117,7 +117,6 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 - [ ] Editors: follow the routine in [workflow.md](workflow.md#the-editor-routine); turn on *Prevent self-approval* once there is a second approver.
 - [ ] Replace all fictional sample content (authors, article text, FAQ policies, promotions, contact details).
 - [ ] Add **publish webhooks** → Next.js revalidation (tags or paths), then cache Contentstack reads.
-- [ ] Add BigCommerce **Store Translations** for French product content (or accept English product names).
 - [ ] Decide the B2B account story: customer login, company price lists, quotes ([bigcommerce.md](bigcommerce.md)).
 - [ ] `sitemap.xml`, `robots.txt`, canonical host, analytics, error monitoring.
 - [ ] Review the cookie notice requirements for the cart cookie (`bc_cart_id`, strictly necessary).
@@ -149,7 +148,7 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 ## Known limitations
 
 - No buyer sign-in, per-company pricing, quotes or order history (B2B Edition is not yet integrated).
-- Product text is English only.
+- Product, category and custom-field text is translated only where BigCommerce has Store Translations (French, plus any other locale added the same way).
 - Contentstack reads are not cached by Next.js (each request reads the CDN).
 - The review gate covers content only, not code; editing an Approved entry does not reset its stage ([workflow.md](workflow.md#what-the-gate-does-not-cover)).
 - The Contentstack free plan allows 10 content types; all are in use.

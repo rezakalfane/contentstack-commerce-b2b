@@ -124,8 +124,8 @@ Start with **[docs/README.md](docs/README.md)**. Highlights:
 
 - **All sample content is fictional.** Author names, article text, FAQ policies, delivery claims and the
   `example.com` contact details are placeholders. Replace them before going public.
-- **Product names and brands are not translated**: they come from BigCommerce, where the store has no French
-  translations. Navigation, categories, specs and all UI text are translated.
+- **Product, category and custom-field text is translated by BigCommerce** (Store Translations) and read with the locale
+  directive; URLs keep the English slugs. UI text, navigation and fallbacks live in `lib/i18n.ts`.
 - The Contentstack stack is on the **free plan** (10 content types maximum, currently all used).
 - Secrets live only in `.env.local` (gitignored). The management token is used by the seeding scripts, never by the
   running storefront.

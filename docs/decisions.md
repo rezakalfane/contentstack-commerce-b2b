@@ -65,10 +65,14 @@ slug-mapping step is needed.
 **Why.** A partially translated site is better than gaps. Missing translations are visible to editors because the page
 shows English.
 
-### D11. Product text stays English until BigCommerce translates it
-**Decision.** Do not machine-translate product names or copy in code.
-**Why.** Product data belongs to BigCommerce. The client already sends `Accept-Language`, so Store Translations will light up
-without code changes.
+### D11. Product text comes from BigCommerce Store Translations; URLs stay shared
+**Decision.** Do not translate product names or copy in code. Read translated content from the Storefront API with an
+`@shopperPreferences(locale: "fr")` directive (it ignores `Accept-Language`), and keep the English slugs in every language by
+restoring each `path` from the default-locale catalog (see [bigcommerce.md](bigcommerce.md)).
+**Why.** Product data belongs to BigCommerce. Translated URL paths (`/produits/...`) would need route, language-switcher and hreflang
+changes (reverses D9) and a product path only resolves in its own language.
+**Consequence.** A French product page costs one extra read (resolve the English path, then the translated content by id), and French
+listings add one cached lookup of English paths.
 
 ## Editing
 
