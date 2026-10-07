@@ -42,12 +42,25 @@ A thin GraphQL client (`gql()`), the query fragments, and typed functions. Detai
 All pages accept `?live_preview=…` (preview) and add `<EditSupport>`, which loads the editing SDK and declares the entry
 via `<meta>` tags.
 
-### The catalog catch-all route
+### The catalog routes
 
-`app/[locale]/products/[...slug]/page.tsx` serves two kinds of URL. BigCommerce paths look like
-`/products/<category>/<subcategory>/<product-slug>/`, so the route rebuilds the BigCommerce path from the slug and
-dispatches on depth: **one or two segments are categories, three or more are products**. If the guess is wrong the other
-interpretation is tried, and `notFound()` is raised if neither resolves.
+BigCommerce translates catalog URLs, so the catalog lives at `/products/...` in English and `/fr/produits/...` in French (the root category
+"Products" is "Produits" in French, and every category and product slug below it is translated too). The routes are
+`app/[locale]/[root]/page.tsx` (listing) and `app/[locale]/[root]/[...slug]/page.tsx` (category or product), where `[root]` is the language's
+catalog root (`CATALOG_ROOT` in `lib/i18n.ts`). Static routes (`/blog`, `/guides`, `/faq`, `/cart`) take precedence over `[root]`.
+
+- The page rebuilds the BigCommerce path from `root` and the slug (`/produits/batteries-automobiles/...`) and resolves it **in the page's
+  language**: a path only resolves in its own language. **One or two segments are categories, three or more are products.** If the guess is
+  wrong the other interpretation is tried, and `notFound()` is raised if neither resolves.
+- `ensureCatalogRoot()` (`lib/catalog-route.ts`): another language's root (an old or content-stored link such as `/fr/products/...`) is
+  **permanently redirected** to the same page in this language; any other first segment is a 404.
+- Product and category reads include `locales`, BigCommerce's list of the page's path in every language. It feeds `hreflang` / canonical
+  tags (`alternatesFromPaths`) and the language switcher.
+- **Language switcher:** on a catalog page it links to `/api/switch-locale?to=fr&path=<current path>`, which looks up the page's path in the
+  target language and redirects (307), keeping the other query parameters and dropping attribute filters (`f.*`, whose values are translated).
+  Other pages just swap the `/fr` prefix.
+- `localePath(locale, "/products")` (the bare catalog link used in navigation, footer, buttons and breadcrumbs) maps to the language's root.
+  Tiles and the mega menu use the translated paths from the category tree; tile photos are matched by category id.
 
 ## 3. Home page
 

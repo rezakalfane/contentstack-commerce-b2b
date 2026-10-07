@@ -53,26 +53,25 @@ French string is a compile error.
 **Why.** Keeps existing URLs stable for the default language while using one `[locale]` route tree.
 **Rejected.** `/en` prefix for English (changes all URLs); sub-domains (needs DNS/hosting setup).
 
-### D9. Shared slugs across languages
-**Decision.** `/fr/blog/<english-slug>`.
-**Why.** The language switcher is exact (swap the prefix), `url` stays equal between master and localized entries, and no
-slug-mapping step is needed.
-**Trade-off.** Less SEO benefit than translated slugs. The alternative needs per-locale slug lookup in the switcher and in
-`generateStaticParams`.
+### D9. Shared slugs for content; translated URLs for the catalog
+**Decision.** Content pages share slugs across languages (`/fr/blog/<english-slug>`). The catalog uses BigCommerce's translated URLs
+(`/fr/produits/<categorie>/<produit>`), with a language switcher that looks the page up.
+**Why.** For content, the switcher is exact (swap the prefix) and no slug mapping is needed. For the catalog, BigCommerce already translates
+and serves the paths, and French URLs are better for SEO and for visitors.
+**History.** The catalog first kept English slugs in French (paths restored from the default-language catalog); translated URLs replaced that.
 
 ### D10. Fallback to English for untranslated entries
 **Decision.** `includeFallback()` on every read.
 **Why.** A partially translated site is better than gaps. Missing translations are visible to editors because the page
 shows English.
 
-### D11. Product text comes from BigCommerce Store Translations; URLs stay shared
-**Decision.** Do not translate product names or copy in code. Read translated content from the Storefront API with an
-`@shopperPreferences(locale: "fr")` directive (it ignores `Accept-Language`), and keep the English slugs in every language by
-restoring each `path` from the default-locale catalog (see [bigcommerce.md](bigcommerce.md)).
-**Why.** Product data belongs to BigCommerce. Translated URL paths (`/produits/...`) would need route, language-switcher and hreflang
-changes (reverses D9) and a product path only resolves in its own language.
-**Consequence.** A French product page costs one extra read (resolve the English path, then the translated content by id), and French
-listings add one cached lookup of English paths.
+### D11. Product text and URLs come from BigCommerce Store Translations
+**Decision.** Do not translate product names, copy or paths in code. Read translated content from the Storefront API with an
+`@shopperPreferences(locale: "fr")` directive (it ignores `Accept-Language`) and use the translated paths it returns (see [bigcommerce.md](bigcommerce.md)).
+**Why.** Product data belongs to BigCommerce, including its URLs; a translated path only resolves in its own language, so pages resolve the
+path of the page's language.
+**Consequence.** The catalog root segment per language is configuration (`CATALOG_ROOT`); a language switch on a catalog page costs one
+redirect through `/api/switch-locale`; filter values are translated, so attribute filters are not carried across languages.
 
 ## Editing
 
@@ -173,6 +172,6 @@ Vercel skips a branch whose tip it already built, so the empty commit forces a f
 ## Open questions
 
 - Will buyers **sign in** (B2B Edition companies, price lists, quotes)? Today "your negotiated prices" is aspirational copy.
-- Do we want **translated slugs** for French SEO (reverses D9)?
+- Should attribute filters survive a language switch (their values are translated, so they are dropped today)?
 - Should category tiles and the home category mosaic move into Contentstack (needs a type slot)?
 - Publish **webhooks and caching** for Contentstack reads at production traffic.
