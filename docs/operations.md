@@ -113,8 +113,8 @@ Already done: deployed on Vercel with GitHub auto-deploy and all variables set (
 - [x] All content is published to `production`; the live site reads it with its own delivery and preview tokens
       ([contentstack.md](contentstack.md#environments-and-tokens)). Confirm with the `X-Content-Environment` response header.
 - [x] Review gate between `preview` and `production`: staging site plus workflow and publishing rule ([workflow.md](workflow.md)).
-- [ ] **Deploy the block-model code** (pending: committed, not deployed) and verify production and staging (home, FAQ, guides, blog, a post, a guide, English and French, and an edit in Visual Editor).
-- [ ] **Run the prepared prune** of the earlier fixed-layout fields and the `blog_listing_page` / `hero_banner` types (`backup.py`, deploy, then `prune.py --run`; see [seeding.md](seeding.md#backup-and-prune)). Not run yet.
+- [x] **Deploy the block-model code** and verify production and staging (home, FAQ, guides, blog, a post, a guide, English and French, and an edit in Visual Editor).
+- [x] **Run the prune** of the earlier fixed-layout fields and the `blog_listing_page` / `hero_banner` types (`backup.py`, deploy, then `prune.py --run`; see [seeding.md](seeding.md#backup-and-prune)). Done on 7 October 2026.
 - [ ] Editors: follow the routine in [workflow.md](workflow.md#the-editor-routine); turn on *Prevent self-approval* once there is a second approver.
 - [ ] Replace all fictional sample content (authors, article text, FAQ policies, promotions, contact details).
 - [ ] Add **publish webhooks** → Next.js revalidation (tags or paths), then cache Contentstack reads.

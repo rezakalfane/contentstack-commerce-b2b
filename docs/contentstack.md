@@ -59,7 +59,7 @@ Vercel, and redeploy.
 ## Content types
 
 Ten types today, defined in `tools/contentstack/schemas.py` (the last five) or created by the starter kit (the first five). The block model adds fields,
-not types (`tools/contentstack/blocks.py`); the pending prune removes `blog_listing_page` and `hero_banner`, leaving **eight** (see
+not types (`tools/contentstack/blocks.py`); the prune removed `blog_listing_page` and `hero_banner`, leaving **eight** (see
 [the block model](#the-block-model-and-what-the-prune-removes)).
 
 ![Content types in Contentstack](images/cs-content-types.jpg)
@@ -107,10 +107,10 @@ them in the entry form or in Visual Editor. A block is addressed by its key (`{"
 
 `blog_landing_page.content` accepts `text`, `image` and `video`. The seeded pages are `home` (`/`), `faq`, `guides` and `blog`.
 
-**Pending prune (not run).** The earlier fields are still in the stack next to the blocks, and the site no longer reads them:
+**Pruned (7 October 2026).** These earlier fields were removed once the block-model code was live, since the site no longer read them:
 `page.image`, `rich_text`, `blocks`, `hero`; `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`; and the
 `blog_listing_page` and `hero_banner` content types with their entries. `tools/contentstack/prune.py` (a dry run unless `--run`, after `backup.py`) removes
-them; see [seeding.md](seeding.md#backup-and-prune). Until then the counts below include them.
+them; see [seeding.md](seeding.md#backup-and-prune). The counts below predate the prune.
 
 ### Rules that bit us (and are enforced by the API)
 

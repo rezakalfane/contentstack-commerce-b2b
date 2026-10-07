@@ -194,8 +194,8 @@ are gone. The seeding scripts moved from `scripts/seed` to `tools/contentstack`.
 fields (`page.image`, `rich_text`, `blocks`, `hero`; `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`) and the
 `blog_listing_page` and `hero_banner` types are still in the stack.
 **Why.** Nothing is removed while the live site can still depend on it. `tools/contentstack/prune.py` removes them (a dry run unless `--run`, after `backup.py`);
-it is prepared and **has not been run**, and the block-model code is **not deployed yet**.
-**Later.** Deploy, verify, run the prune when approved, then verify production and staging.
+it was run on 7 October 2026 after a backup, once the block-model code was deployed and its content published to `preview` and `production`.
+**Result.** Production and staging were verified after the prune (home, FAQ, guides, blog, English and French).
 
 ## Open questions
 

@@ -134,7 +134,7 @@ and `hero_banner` types with their entries. The order for removing it:
 4. `python3 tools/contentstack/prune.py --run`: removes those fields, then deletes the two types (`force`, which deletes their entries). The stack goes
    from ten content types to eight.
 
-**Status: the new code is not deployed yet and the prune has not been run; it awaits approval.** Note that `seed.py`, `seed_extra.py` and `seed_fr.py`
+**Status: the prune was run on 7 October 2026, after the new code was deployed.** Note that `seed.py`, `seed_extra.py` and `seed_fr.py`
 still write the earlier model, so run them only before the prune (or adapt them first); re-run `blocks.py` after them.
 
 ### Start over

@@ -9,7 +9,7 @@
 | [bigcommerce.md](bigcommerce.md) | work with the catalog: channel, token, the GraphQL queries, facets, categories, cart |
 | [i18n.md](i18n.md) | add a language or translate content: URL strategy, fallback, dictionaries, hreflang |
 | [workflow.md](workflow.md) | review content on the staging site and approve it before it goes live |
-| [seeding.md](seeding.md) | create or refresh sample content with the Python scripts; the block model, backup and the pending prune |
+| [seeding.md](seeding.md) | create or refresh sample content with the Python scripts; the block model, backup and the prune |
 | [design-system.md](design-system.md) | build UI in the "Workbench" look: tokens, type, components, imagery |
 | [operations.md](operations.md) | set up environment variables, run, deploy and troubleshoot |
 | [decisions.md](decisions.md) | learn why choices were made, and what was rejected |

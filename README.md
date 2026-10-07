@@ -9,8 +9,7 @@ The site is bilingual (English at `/`, French at `/fr`) and editors can edit it 
 Pages and posts are **ordered lists of blocks** that editors can reorder in Visual Editor (a `page` entry has a `components` modular blocks
 field, a post has `content` blocks). This is a single-CMS build: the UI, the content model (`core/`) and the Contentstack provider come
 from the private switchable project `content-commerce-b2b`, reduced to Contentstack only (no switcher, no other CMS, no time travel).
-**Status:** the block model is in the code and in the stack next to the earlier fixed-layout fields; the new code is **not deployed yet** and
-the prune of the earlier fields has **not been run** (see Important notes).
+**Status:** the block model is deployed (production and staging) and the earlier fixed-layout fields are pruned from the stack (7 October 2026).
 
 ![Commerce B2B homepage: photo hero, category mosaic and CMS-driven content, in the Workbench light theme](docs/images/homepage.jpg)
 
@@ -145,11 +144,8 @@ Start with **[docs/README.md](docs/README.md)**. Highlights:
   `example.com` contact details are placeholders. Replace them before going public.
 - **Product, category and custom-field text is translated by BigCommerce** (Store Translations) and read with the locale
   directive; URLs keep the English slugs. UI text, navigation and fallbacks live in `lib/i18n.ts`.
-- The Contentstack stack is on the **free plan** (10 content types maximum, currently all used; the prune frees two).
-- **Pending, not deployed.** The block-model code is committed but not deployed: production still serves the earlier version.
-- **The prune is pending.** The stack still holds the earlier fixed-layout fields (`page.image`, `rich_text`, `blocks`, `hero`;
-  `blog_landing_page.body`, `related_post`, `is_archived`, `comments`, `social_share`) and the `blog_listing_page` and `hero_banner` types next
-  to the block model; the site no longer reads them. `tools/contentstack/backup.py`, then `prune.py --run` (after the new code is deployed) is
-  prepared and **has not been run**; see [docs/seeding.md](docs/seeding.md).
+- The Contentstack stack is on the **free plan** (10 content types maximum; the prune freed two, so eight are in use).
+- **The prune is done.** The earlier fixed-layout fields and the `blog_listing_page` and `hero_banner` types were removed after the block-model code was
+  deployed; a backup of the stack before the prune is in `.backups/` (gitignored). See [docs/seeding.md](docs/seeding.md).
 - Secrets live only in `.env.local` (gitignored). The management token is used by the seeding scripts, never by the
   running storefront.
